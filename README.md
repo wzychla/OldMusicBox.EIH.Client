@@ -1,6 +1,6 @@
 # OldMusicBox.EIH.Client
 
-The goal of this project is to provide an independent .NET [EIH](Electronic Identification Hub, **Węzeł Krajowy**) Client. 
+The goal of this project is to provide an independent .NET EIH (Electronic Identification Hub, **Węzeł Krajowy**) Client. 
 The client will support the Węzeł Krajowy SSO flow
 
 The implementation follows the 
