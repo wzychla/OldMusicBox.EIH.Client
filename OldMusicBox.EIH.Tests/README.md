@@ -1,0 +1,1 @@
+Za³¹czona przyk³adowa zaszyfrowana asercja oraz certyfikat pochodz¹ z przyk³adu do³¹czonego do witryny Symulatora WK.

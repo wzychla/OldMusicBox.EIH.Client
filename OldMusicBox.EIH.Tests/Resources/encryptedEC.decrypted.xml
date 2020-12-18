@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:coi-extension="http://coi.gov.pl/saml-extensions" xmlns:coi-naturalperson="http://coi.gov.pl/attributes/naturalperson" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:dsig11="http://www.w3.org/2009/xmldsig11#" xmlns:eidas="http://eidas.europa.eu/saml-extensions" xmlns:kirwb="http://wb.kir.pl/saml-extensions" xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:naturalperson="http://eidas.europa.eu/attributes/naturalperson" xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:xenc11="http://www.w3.org/2009/xmlenc11#" ID="_ID-6ed12bfb-60f9-41bf-afdd-0ab87aec4150" IssueInstant="2018-09-13T13:17:51.395Z" Version="2.0">
+    <saml2:Issuer>localhost.wk.gov.pl</saml2:Issuer>
+    <saml2:Subject>
+        <saml2:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">adminAll</saml2:NameID>
+        <saml2:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+            <saml2:SubjectConfirmationData InResponseTo="ID-d136a4ee-a3a3-4392-a055-2e95d44165bc" NotOnOrAfter="2018-09-13T14:07:51.000Z" Recipient="http://localhost:11080/saml-emulator/context"/>
+        </saml2:SubjectConfirmation>
+    </saml2:Subject>
+    <saml2:Conditions NotBefore="2018-09-13T13:17:51.000Z" NotOnOrAfter="2018-09-13T14:07:51.000Z">
+        <saml2:AudienceRestriction>
+            <saml2:Audience>http://localhost.sp.pl</saml2:Audience>
+        </saml2:AudienceRestriction>
+    </saml2:Conditions>
+    <saml2:AuthnStatement AuthnInstant="2018-09-13T13:17:51.395Z" SessionIndex="_ID-6ed12bfb-60f9-41bf-afdd-0ab87aec4150">
+        <saml2:AuthnContext>
+            <saml2:AuthnContextClassRef>http://eidas.europa.eu/LoA/substantial</saml2:AuthnContextClassRef>
+            <saml2:AuthenticatingAuthority>pz.gov.pl</saml2:AuthenticatingAuthority>
+        </saml2:AuthnContext>
+    </saml2:AuthnStatement>
+    <saml2:AttributeStatement>
+        <saml2:Attribute FriendlyName="FamilyName" Name="http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+            <saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="naturalperson:CurrentFamilyNameType">Apitz</saml2:AttributeValue>
+        </saml2:Attribute>
+        <saml2:Attribute FriendlyName="DateOfBirth" Name="http://eidas.europa.eu/attributes/naturalperson/DateOfBirth" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+            <saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="naturalperson:DateOfBirthType">1987-02-22Z</saml2:AttributeValue>
+        </saml2:Attribute>
+        <saml2:Attribute FriendlyName="FirstName" Name="http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+            <saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="naturalperson:CurrentGivenNameType">Roch</saml2:AttributeValue>
+        </saml2:Attribute>
+        <saml2:Attribute FriendlyName="PersonIdentifier" Name="http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+            <saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="naturalperson:PersonIdentifierType">87022243734</saml2:AttributeValue>
+        </saml2:Attribute>
+    </saml2:AttributeStatement>
+</saml2:Assertion>

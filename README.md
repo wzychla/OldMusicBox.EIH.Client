@@ -17,7 +17,7 @@ Please refer to the change list and the road map below.
 |NuGet|not yet|
 |Single Sign On|not yet|
 |Single Log Out|not yet|
-|.NET Framework|4.7.2+|
+|.NET Framework|4.6.2+|
 |.NET Core|not yet|
 
 ## Documentation

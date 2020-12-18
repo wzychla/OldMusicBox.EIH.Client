@@ -1,0 +1,22 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<body>
+    <form id="f0" method="post" action="((Destination))" enctype="application/x-www-form-urlencoded">
+        <input type="hidden" name="SAMLRequest" value="((SAMLRequest))" />
+        <input type="hidden" name="RelayState" value="((RelayState))" />
+        <noscript>
+            <div>
+                Script execution is disabled on this page. Click Submit to continue.
+            </div>
+            <div>
+                <button>Submit</button>
+            </div>
+        </noscript>
+    </form>
+    <script>
+        window.setTimeout(function () {
+            document.getElementById('f0').submit();
+        }, 0);
+    </script>
+</body>
+</html>
