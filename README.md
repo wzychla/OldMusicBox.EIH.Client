@@ -6,7 +6,7 @@ The client will support the Węzeł Krajowy SSO flow
 The implementation follows the 
 [official specification](https://symulator.login.gov.pl/Instrukcja%20integratora%20DU.pdf).
 
-## Current Version: 0.1
+## Current Version: 0.5
 
 Please refer to the change list and the road map below.
 
@@ -52,6 +52,9 @@ straightforward to rewrite the BouncyCastle code, however
 it was not that easy to rewrite the **org.apache.xml.security.encryption.XMLCipher** code. 
 
 ## Version History:
+
+* 0.5 (2020-12-18)
+    * assertion decryption test passes
 
 * 0.1 (2020-12-18)
     * initial commit
