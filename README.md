@@ -15,8 +15,8 @@ Please refer to the change list and the road map below.
 |  Feature  | Status |
 |----|:---:|
 |NuGet|not yet|
-|Single Sign On|not yet|
-|Single Log Out|not yet|
+|Single Sign On|**yes**|
+|Single Log Out|**yes**|
 |.NET Framework|4.6.2+|
 |.NET Core|not yet|
 
@@ -55,6 +55,8 @@ it was not that easy to rewrite the **org.apache.xml.security.encryption.XMLCiph
 
 * 0.5 (2020-12-18)
     * assertion decryption test passes
+    * SSO, SLO works correctly
+    * demo included
 
 * 0.1 (2020-12-18)
     * initial commit

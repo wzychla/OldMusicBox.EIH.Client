@@ -191,8 +191,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\RequestPostBinding.html" />
-    <Content Include="Resources\ResponsePostBinding.html" />
+    <EmbeddedResource Include="Resources\RequestPostBinding.html" />
+    <EmbeddedResource Include="Resources\ResponsePostBinding.html" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Xml\SR.resx">
