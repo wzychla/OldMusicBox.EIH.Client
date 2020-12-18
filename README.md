@@ -14,7 +14,7 @@ Please refer to the change list and the road map below.
 
 |  Feature  | Status |
 |----|:---:|
-|NuGet|not yet|
+|NuGet|**yes**|
 |Single Sign On|**yes**|
 |Single Log Out|**yes**|
 |.NET Framework|4.6.2+|
