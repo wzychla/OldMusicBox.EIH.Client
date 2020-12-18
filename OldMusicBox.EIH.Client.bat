@@ -1,0 +1,1 @@
+start powershell -ExecutionPolicy RemoteSigned ./OldMusicBox.EIH.Client.ps1 
