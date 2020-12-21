@@ -4,7 +4,7 @@ The goal of this project is to provide an independent .NET EIH (Electronic Ident
 The client will support the Węzeł Krajowy SSO flow
 
 The implementation follows the 
-[official specification](https://symulator.login.gov.pl/Instrukcja%20integratora%20DU.pdf).
+[official specification](https://mc.bip.gov.pl/interoperacyjnosc-mc/wezel-krajowy-dokumentacja-dotyczaca-integracji-z-wezlem-krajowym.html).
 
 ## Current Version: 0.5
 
