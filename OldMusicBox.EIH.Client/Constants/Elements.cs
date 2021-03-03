@@ -14,5 +14,7 @@ namespace OldMusicBox.EIH.Client.Constants
         public const string SAMLARTIFACT = "SAMLArt";
         public const string SAMLREQUEST  = "SAMLRequest";
         public const string SAMLRESPONSE = "SAMLResponse";
+        public const string RELAYSTATE   = "RelayState";
+        public const string AUTHNREQUEST = "AuthnRequest";
     }
 }

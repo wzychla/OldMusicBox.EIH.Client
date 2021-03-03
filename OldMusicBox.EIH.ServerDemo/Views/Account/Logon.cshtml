@@ -1,0 +1,71 @@
+﻿@model OldMusicBox.EIH.ServerDemo.Models.AccountLogonModel
+@{
+    ViewBag.Title = "Logon";
+}
+
+@using (var form = Html.BeginForm())
+{
+    <div id="login">
+        <div>
+            <strong>Stub WK Logon page</strong>
+        </div>
+        <div>
+            <label for="Username">Username:</label>
+            @Html.TextBoxFor(m => m.Username, new { placeholder = "username" })
+            @Html.ValidationMessageFor(m => m.Username)
+        </div>
+        <div>
+            <label for="Surname">Surname:</label>
+            @Html.TextBoxFor(m => m.Surname, new { placeholder = "Kowalski" })
+            @Html.ValidationMessageFor(m => m.Surname)
+        </div>
+        <div>
+            <label for="GivenName">Given name:</label>
+            @Html.TextBoxFor(m => m.GivenName, new { placeholder = "Jan" })
+            @Html.ValidationMessageFor(m => m.GivenName)
+        </div>
+        <div>
+            <label for="PESEL">PESEL:</label>
+            @Html.TextBoxFor(m => m.PESEL, new { placeholder = "11111111111" })
+            @Html.ValidationMessageFor(m => m.PESEL)
+        </div>
+        <div>
+            <button>Logon</button>
+        </div>
+        <div id="message">
+            <pre>
+        Okno logowania niniejszego zastępnika Węzła Krajowego nie wymaga 
+        podawania hasła użytkownika. 
+        Zamiast tego pozwala określić oczekiwane wartości atrybutów, 
+        które są w kolejnym kroku logowania przesyłane do aplikacji w tokenie SAML.
+        </pre>
+        </div>
+    </div>
+}
+
+<style>
+    html, body, form {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    form {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #login {
+        padding: 20px;
+        border: 1px solid black;
+    }
+
+        #login input {
+            display: block;
+            width: 95%;
+        }
+
+    #message {
+        text-align: justify;
+    }
+</style>

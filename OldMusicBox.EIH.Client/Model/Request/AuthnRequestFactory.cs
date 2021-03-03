@@ -234,7 +234,27 @@ namespace OldMusicBox.EIH.Client.Model.Request
 
             // return the uri
             return uri.ToString();
-        } 
+        }
+
+        #endregion
+
+        #region From request
+
+        public AuthnRequest FromRequest(HttpRequestBase request)
+        {
+            if (request[Elements.SAMLREQUEST] != null)
+            {
+                return this.MessageSerializer.Deserialize<AuthnRequest>(
+                    request[Elements.SAMLREQUEST],
+                    new MessageDeserializationParameters()
+                    {
+                        ShouldDebase64Encode = true,
+                        // inflated in uri, raw in form
+                        ShouldInflate = request.Form[Elements.SAMLREQUEST] == null
+                    });
+            }
+            return null;
+        }
 
         #endregion
     }
