@@ -26,7 +26,29 @@ namespace OldMusicBox.EIH.Client
         }
 
         /// <summary>
-        /// Tahe a SOAP envelope and return its body
+        /// Take a SOAP envelope and return its body
+        /// </summary>
+        public static string FromEnveloped(this XmlDocument soapEnvelope)
+        {
+            if (soapEnvelope == null)
+            {
+                throw new ArgumentNullException("soapEnvelope");
+            }
+
+            var manager = new XmlNamespaceManager(soapEnvelope.NameTable);
+            manager.AddNamespace("s", "http://schemas.xmlsoap.org/soap/envelope/");
+
+            var body = soapEnvelope.SelectSingleNode("//s:Envelope/s:Body", manager);
+            if (body == null)
+            {
+                throw new ArgumentException("Supplied envelope seems to be invalid");
+            }
+
+            return body.InnerXml;
+        }
+
+        /// <summary>
+        /// Take a SOAP envelope and return its body
         /// </summary>
         public static string FromEnveloped( this string soapEnvelope )
         {
@@ -39,16 +61,7 @@ namespace OldMusicBox.EIH.Client
             xml.PreserveWhitespace = true;
             xml.LoadXml(soapEnvelope);
 
-            var manager = new XmlNamespaceManager(xml.NameTable);
-            manager.AddNamespace("s", "http://schemas.xmlsoap.org/soap/envelope/");
-
-            var body = xml.SelectSingleNode("//s:Envelope/s:Body", manager);
-            if ( body == null )
-            {
-                throw new ArgumentException("Supplied envelope seems to be invalid");
-            }
-
-            return body.InnerXml;
+            return FromEnveloped(xml);
         }
     }
 }

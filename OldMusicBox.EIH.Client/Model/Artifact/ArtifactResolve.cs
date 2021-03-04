@@ -13,7 +13,9 @@ namespace OldMusicBox.EIH.Client.Model
     /// ArtifactResolve request model
     /// </summary>
     [XmlRoot("ArtifactResolve", Namespace = Namespaces.PROTOCOL)]
-    public class ArtifactResolve : ISignableMessage
+    public class ArtifactResolve : 
+        ISignableMessage,
+        IVerifiableMessage
     {
         [XmlAttribute("ID")]
         public string ID { get; set; }
@@ -29,5 +31,8 @@ namespace OldMusicBox.EIH.Client.Model
 
         [XmlElement("Artifact", Namespace = Namespaces.PROTOCOL)]
         public string Artifact { get; set; }
+
+        [XmlIgnore]
+        public RawMessage RawMessage { get; set; }
     }
 }

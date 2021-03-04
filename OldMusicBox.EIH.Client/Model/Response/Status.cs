@@ -12,6 +12,20 @@ namespace OldMusicBox.EIH.Client.Model
     {
         [XmlElement("StatusCode", Namespace = Namespaces.PROTOCOL)]
         public StatusCode StatusCode { get; set; }
+
+        public static Status Success
+        {
+            get
+            {
+                return new Status()
+                {
+                    StatusCode = new StatusCode()
+                    {
+                        Value = Constants.StatusCodes.SUCCESS
+                    }
+                };
+            }
+        }
     }
 
     public class StatusCode

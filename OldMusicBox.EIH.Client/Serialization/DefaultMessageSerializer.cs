@@ -1,5 +1,6 @@
 ﻿using OldMusicBox.EIH.Client.Constants;
 using OldMusicBox.EIH.Client.Logging;
+using OldMusicBox.EIH.Client.Signature;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,7 +39,8 @@ namespace OldMusicBox.EIH.Client.Serialization
 
         public virtual T Deserialize<T>(
             string input,
-            MessageDeserializationParameters parameters)
+            MessageDeserializationParameters parameters
+            )
             where T : class, ISerializableMessage
         {
             // base64?
@@ -50,7 +52,7 @@ namespace OldMusicBox.EIH.Client.Serialization
             // inflate?
             if (parameters.ShouldInflate)
             {
-                data = this.Inflate(data);
+                data = this.DeflateDecompress(data);
             }
 
             var rawString = Encoding.GetString(data);
@@ -60,7 +62,14 @@ namespace OldMusicBox.EIH.Client.Serialization
                 var xmlSerializer = new XmlSerializer(typeof(T));
                 var rawObject = xmlSerializer.Deserialize(reader);
 
-                return rawObject as T;
+                var result = rawObject as T;
+
+                if (result is IVerifiableMessage)
+                {
+                    ((IVerifiableMessage)result).RawMessage = new Model.RawMessage() { Payload = rawString };
+                }
+
+                return result;
             }
         }
 
@@ -97,7 +106,7 @@ namespace OldMusicBox.EIH.Client.Serialization
             // convert the byte[] according to parameters
             if ( parameters.ShouldDeflate )
             {
-                serializedBytes = this.Deflate(serializedBytes);
+                serializedBytes = this.DeflateCompress(serializedBytes);
             }
             if ( parameters.ShouldBase64Encode )
             {
@@ -112,7 +121,7 @@ namespace OldMusicBox.EIH.Client.Serialization
         /// <summary>
         /// Deflate/inflate
         /// </summary>
-        public virtual byte[] Deflate(byte[] bytes)
+        public virtual byte[] DeflateCompress(byte[] bytes)
         {
             using (var ms = new MemoryStream())
             {
@@ -127,7 +136,7 @@ namespace OldMusicBox.EIH.Client.Serialization
         /// <summary>
         /// Deflate/inflate
         /// </summary>
-        public virtual byte[] Inflate(byte[] bytes)
+        public virtual byte[] DeflateDecompress(byte[] bytes)
         {
             using (var ms = new MemoryStream(bytes))
             {

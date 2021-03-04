@@ -16,33 +16,18 @@ namespace OldMusicBox.EIH.Client.Model.Request
     /// <summary>
     /// SAML2 authentication request factory
     /// </summary>
-    public class AuthnRequestFactory
+    public class AuthnRequestFactory : BaseFactory
     {
         public AuthnRequestFactory() 
         {
             this.AuthnRequest           = new AuthnRequest();
 
-            this.MessageSerializer = new DefaultMessageSerializer();
-            this.MessageSigner     = new DefaultMessageSigner(this.MessageSerializer);
-
             this.AuthnRequest.ID           = string.Format("id_{0}", Guid.NewGuid());
             this.AuthnRequest.IssueInstant = DateTime.UtcNow;
             this.AuthnRequest.Version      = ProtocolVersion._20;
-
-            this.Encoding = Encoding.UTF8;
         }
 
         public AuthnRequest AuthnRequest { get; private set; }
-
-        /// <summary>
-        /// Message serializer
-        /// </summary>
-        public IMessageSerializer MessageSerializer { get; set; }
-
-        /// <summary>
-        /// Message signer
-        /// </summary>
-        public IMessageSigner MessageSigner { get; set; }
 
         /// <summary>
         /// Assertion Consumer Service URL        
@@ -80,11 +65,6 @@ namespace OldMusicBox.EIH.Client.Model.Request
                 this.AuthnRequest.Issuer = value;
             }
         }
-
-        /// <summary>
-        /// Document's encoding
-        /// </summary>
-        public Encoding Encoding { get; set; }
 
         /// <summary>
         /// The Identity Provider
@@ -244,14 +224,15 @@ namespace OldMusicBox.EIH.Client.Model.Request
         {
             if (request[Elements.SAMLREQUEST] != null)
             {
-                return this.MessageSerializer.Deserialize<AuthnRequest>(
-                    request[Elements.SAMLREQUEST],
-                    new MessageDeserializationParameters()
-                    {
-                        ShouldDebase64Encode = true,
-                        // inflated in uri, raw in form
-                        ShouldInflate = request.Form[Elements.SAMLREQUEST] == null
-                    });
+                return 
+                    this.MessageSerializer.Deserialize<AuthnRequest>(
+                        request[Elements.SAMLREQUEST],
+                        new MessageDeserializationParameters()
+                        {
+                            ShouldDebase64Encode = true,
+                            // inflated in uri, raw in form
+                            ShouldInflate = request.Form[Elements.SAMLREQUEST] == null
+                        });
             }
             return null;
         }

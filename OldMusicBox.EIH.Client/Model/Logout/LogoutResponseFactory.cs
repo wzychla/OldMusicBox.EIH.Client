@@ -15,20 +15,15 @@ namespace OldMusicBox.EIH.Client.Model.Logout
     /// <summary>
     /// Logout response factory
     /// </summary>
-    public class LogoutResponseFactory
+    public class LogoutResponseFactory : BaseFactory
     {
         public LogoutResponseFactory()
         {
             this.LogoutResponse = new LogoutResponse();
 
-            this.MessageSerializer = new DefaultMessageSerializer();
-            this.MessageSigner     = new DefaultMessageSigner(this.MessageSerializer);
-
             this.LogoutResponse.ID           = string.Format("id_{0}", Guid.NewGuid());
             this.LogoutResponse.IssueInstant = DateTime.UtcNow;
             this.LogoutResponse.Version      = ProtocolVersion._20;
-
-            this.Encoding = Encoding.UTF8;
         }
 
         /// <summary>
@@ -50,18 +45,6 @@ namespace OldMusicBox.EIH.Client.Model.Logout
         }
 
         public LogoutResponse LogoutResponse { get; private set; }
-
-        /// <summary>
-        /// Message serializer
-        /// </summary>
-        public IMessageSerializer MessageSerializer { get; set; }
-
-        /// <summary>
-        /// Message signer
-        /// </summary>
-        public IMessageSigner MessageSigner { get; set; }
-
-        public Encoding Encoding { get; set; }
 
         /// <summary>
         /// Logout request issuer

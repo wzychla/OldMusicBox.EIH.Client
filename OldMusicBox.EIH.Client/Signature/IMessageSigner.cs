@@ -13,14 +13,28 @@ namespace OldMusicBox.EIH.Client.Signature
     /// </summary>
     public interface IMessageSigner
     {
+        /// <summary>
+        /// Sign
+        /// </summary>
         byte[] Sign(
             ISignableMessage   message,
             X509Configuration  x509Configuration
             );
 
+        /// <summary>
+        /// Validate against given certificate
+        /// </summary>
         bool Validate(
             IVerifiableMessage message,
             Org.BouncyCastle.X509.X509Certificate certificate
+            );
+
+        /// <summary>
+        /// Validate against certificate found in the XML
+        /// </summary>
+        bool Validate(
+            IVerifiableMessage message,
+            out Org.BouncyCastle.X509.X509Certificate certificate
             );
     }
 }

@@ -120,55 +120,57 @@ namespace OldMusicBox.EIH.Client.Signature
         }
 
 
-        private bool VerifyXml(byte[] data)
-        {
-            XmlDocument xd = new XmlDocument();
-            xd.PreserveWhitespace = true;
+        //private bool VerifyXml(byte[] data)
+        //{
+        //    XmlDocument xd = new XmlDocument();
+        //    xd.PreserveWhitespace = true;
 
-            using (var stream = new MemoryStream(data))
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                xd.Load(stream);
-            }
+        //    using (var stream = new MemoryStream(data))
+        //    {
+        //        stream.Seek(0, SeekOrigin.Begin);
+        //        xd.Load(stream);
+        //    }
 
-            SignedXml signedXml = new SignedXml(xd);
+        //    SignedXml signedXml = new SignedXml(xd);
 
-            // load the first <signature> node and load the signature  
-            XmlNode MessageSignatureNode = xd.GetElementsByTagName("Signature")[0];
-            if (MessageSignatureNode == null)
-            {
-                MessageSignatureNode = xd.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#")[0];
-            }
+        //    // load the first <signature> node and load the signature  
+        //    XmlNode MessageSignatureNode = xd.GetElementsByTagName("Signature")[0];
+        //    if (MessageSignatureNode == null)
+        //    {
+        //        MessageSignatureNode = xd.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#")[0];
+        //    }
 
-            signedXml.LoadXml((XmlElement)MessageSignatureNode);
-            signedXml.SafeCanonicalizationMethods.Add("http://www.w3.org/TR/1999/REC-xpath-19991116");
+        //    signedXml.LoadXml((XmlElement)MessageSignatureNode);
+        //    signedXml.SafeCanonicalizationMethods.Add("http://www.w3.org/TR/1999/REC-xpath-19991116");
 
-            // get the cert from the signature
-            Org.BouncyCastle.X509.X509Certificate certificate = null;
-            foreach (KeyInfoClause clause in signedXml.KeyInfo)
-            {
-                if (clause is KeyInfoX509Data)
-                {
-                    if (((KeyInfoX509Data)clause).Certificates.Count > 0)
-                    {
-                        certificate =
-                        (Org.BouncyCastle.X509.X509Certificate)((KeyInfoX509Data)clause).Certificates[0];
-                    }
-                }
-            }
+        //    // get the cert from the signature
+        //    Org.BouncyCastle.X509.X509Certificate certificate = null;
+        //    foreach (KeyInfoClause clause in signedXml.KeyInfo)
+        //    {
+        //        if (clause is KeyInfoX509Data)
+        //        {
+        //            if (((KeyInfoX509Data)clause).Certificates.Count > 0)
+        //            {
+        //                certificate =
+        //                (Org.BouncyCastle.X509.X509Certificate)((KeyInfoX509Data)clause).Certificates[0];
+        //            }
+        //        }
+        //    }
 
-            // check the signature and return the result.
-            return signedXml.CheckSignature(certificate, true);
-        }
+        //    // check the signature and return the result.
+        //    return signedXml.CheckSignature(certificate, true);
+        //}
 
 
 
-        private void SetPrefix(string prefix, XmlNode node)
-        {
-            foreach (XmlNode n in node.ChildNodes)
-                SetPrefix(prefix, n);
-            node.Prefix = prefix;
-        }
+        //private void SetPrefix(string prefix, XmlNode node)
+        //{
+        //    foreach (XmlNode n in node.ChildNodes)
+        //        SetPrefix(prefix, n);
+        //    node.Prefix = prefix;
+        //}
+
+
 
         public virtual bool Validate(
             IVerifiableMessage message,
@@ -191,22 +193,94 @@ namespace OldMusicBox.EIH.Client.Signature
             xml.LoadXml(message.RawMessage.Payload);
 
             var signatureNodes = xml.GetElementsByTagName("Signature", Namespaces.XMLDSIG);
-            foreach (XmlElement signatureNode in signatureNodes)
+
+            if (signatureNodes.Count > 0)
             {
-                var signedXml = new SignedXml(signatureNode.ParentNode as XmlElement);
-                signedXml.LoadXml(signatureNode);
-                signedXml.SafeCanonicalizationMethods.Add("http://www.w3.org/TR/1999/REC-xpath-19991116");
-
-                var result = signedXml.CheckSignature(certificate.GetPublicKey());
-
-                if (!result)
+                foreach (XmlElement signatureNode in signatureNodes)
                 {
-                    throw new ValidationException(string.Format("{0} signature validation failed", message.GetType().Name ));
+                    var signedXml = new SignedXml(signatureNode.ParentNode as XmlElement);
+                    signedXml.LoadXml(signatureNode);
+                    signedXml.SafeCanonicalizationMethods.Add("http://www.w3.org/TR/1999/REC-xpath-19991116");
+
+                    var result = signedXml.CheckSignature(certificate.GetPublicKey());
+
+                    if (!result)
+                    {
+                        return false; // throw new ValidationException(string.Format("{0} signature validation failed", message.GetType().Name ));
+                    }
                 }
 
-                return result;
+                return true;
             }
-            return false;
+            else
+            {
+                return false;
+            }
         }
+
+        public virtual bool Validate(
+            IVerifiableMessage message,
+            out Org.BouncyCastle.X509.X509Certificate certificate
+            )
+        {
+            if (message == null || message.RawMessage == null ||
+                 string.IsNullOrEmpty(message.RawMessage.Payload)
+                )
+            {
+                throw new ArgumentNullException("message");
+            }
+
+            certificate = null;
+
+            // search for signatures (possibly multiple)
+            var xml = new XmlDocument();
+            xml.LoadXml(message.RawMessage.Payload);
+
+            var signatureNodes = xml.GetElementsByTagName("Signature", Namespaces.XMLDSIG);
+
+            if (signatureNodes.Count > 0)
+            {
+                foreach (XmlElement signatureNode in signatureNodes)
+                {
+                    var signedXml = new SignedXml(signatureNode.ParentNode as XmlElement);
+                    signedXml.LoadXml(signatureNode);
+                    signedXml.SafeCanonicalizationMethods.Add("http://www.w3.org/TR/1999/REC-xpath-19991116");
+
+                    if ( signedXml.KeyInfo == null )
+                    {
+                        throw new ValidationException("KeyInfo clause missing in the document");
+                    }
+
+                    foreach (KeyInfoClause clause in signedXml.KeyInfo)
+                    {
+                        if (clause is KeyInfoX509Data)
+                        {
+                            if (((KeyInfoX509Data)clause).Certificates.Count > 0)
+                            {
+                                certificate = (Org.BouncyCastle.X509.X509Certificate)((KeyInfoX509Data)clause).Certificates[0];
+                            }
+                        }
+                    }
+
+                    if (certificate == null)
+                    {
+                        throw new ValidationException("Certificate missing from the KeyInfo clause of the document");
+                    }
+
+                    var result = signedXml.CheckSignature(certificate.GetPublicKey());
+                    if (!result)
+                    {
+                        return false; // throw new ValidationException(string.Format("{0} signature validation failed", message.GetType().Name ));
+                    }
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
     }
 }

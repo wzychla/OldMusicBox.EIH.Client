@@ -15,7 +15,8 @@ namespace OldMusicBox.EIH.Client.Model
     /// </summary>
     [XmlRoot("AuthnRequest", Namespace=Namespaces.PROTOCOL)]
     public class AuthnRequest : 
-        ISignableMessage
+        ISignableMessage,
+        IVerifiableMessage
     {
         [XmlAttribute("ID")]
         public string ID { get; set; }
@@ -53,6 +54,9 @@ namespace OldMusicBox.EIH.Client.Model
 
         [XmlElement("RequestedAuthnContext", Namespace = Namespaces.PROTOCOL )]
         public RequestAuthContext RequestedAuthnContext { get; set; }
+
+        [XmlIgnore]
+        public RawMessage RawMessage { get; set; }
     }
 
     public class Extensions

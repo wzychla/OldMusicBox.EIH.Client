@@ -1,4 +1,5 @@
-﻿using OldMusicBox.EIH.Client.Constants;
+﻿using OldMusicBox.EIH.Client;
+using OldMusicBox.EIH.Client.Constants;
 using OldMusicBox.EIH.Client.Model;
 using OldMusicBox.EIH.Client.Model.Request;
 using System;
@@ -23,8 +24,6 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
         {
             try
             {
-                var relayState = this.Request.Params[Elements.RELAYSTATE];
-
                 // authentication request is passed or saved by an eariler login flow
                 var authReq = this.Session[Elements.AUTHNREQUEST] as AuthnRequest;
                 if (authReq == null)
@@ -34,7 +33,7 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
 
                 if (authReq != null)
                 {
-                    return HandleAuthenticationRequest(authReq, relayState);
+                    return HandleAuthenticationRequest(authReq);
                 }
                 else
                 {
@@ -47,7 +46,7 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
             }
         }
 
-        private ActionResult HandleAuthenticationRequest( AuthnRequest req, string relayState )
+        private ActionResult HandleAuthenticationRequest( AuthnRequest req )
         {
             if ( this.User.Identity != null && this.User.Identity.IsAuthenticated )
             {
@@ -57,6 +56,16 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
                 {
                     throw new ArgumentNullException("SessionIndex missing from ClaimsPrincipal");
                 }
+                // validate 
+                var saml2             = new Saml2AuthenticationModule();
+                var validateionResult = saml2.MessageSigner.Validate(req, out Org.BouncyCastle.X509.X509Certificate certificate);
+
+                // is not only that document should be valid but also its issuer and the certificate should match!
+                if ( !validateionResult )
+                {
+                    throw new ApplicationException("Invalid signature");
+                }
+
                 // authenticated user, return the SAML Artifact 
                 var url = $"{req.AssertionConsumerServiceURL}?SAMLArt={sessionIndex}";
                 return Redirect(url);

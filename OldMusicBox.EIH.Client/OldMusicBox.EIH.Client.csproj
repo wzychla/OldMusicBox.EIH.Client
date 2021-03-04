@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants\Binding.cs" />
+    <Compile Include="Constants\Consent.cs" />
     <Compile Include="Constants\Eidas.cs" />
     <Compile Include="Constants\Elements.cs" />
     <Compile Include="Constants\NameID.cs" />
@@ -59,6 +60,7 @@
     <Compile Include="Core\Saml2SecurityTokenHandler.cs" />
     <Compile Include="Core\SignedXmlEx.cs" />
     <Compile Include="Decryption\AssertionDecryptor.cs" />
+    <Compile Include="Decryption\AssertionEncryptor.cs" />
     <Compile Include="Logging\AbstractLogger.cs" />
     <Compile Include="Logging\Event.cs" />
     <Compile Include="Logging\LoggerFactory.cs" />
@@ -66,7 +68,10 @@
     <Compile Include="Model\Artifact\ArtifactResolve.cs" />
     <Compile Include="Model\Artifact\ArtifactResolveConfiguration.cs" />
     <Compile Include="Model\Artifact\ArtifactResolveException.cs" />
+    <Compile Include="Model\Artifact\ArtifactResolveFactory.cs" />
     <Compile Include="Model\Artifact\ArtifactResponse.cs" />
+    <Compile Include="Model\Artifact\ArtifactResponseFactory.cs" />
+    <Compile Include="Model\Base\BaseFactory.cs" />
     <Compile Include="Model\Logout\LogoutRequest.cs" />
     <Compile Include="Model\Logout\LogoutRequestConfiguration.cs" />
     <Compile Include="Model\Logout\LogoutRequestException.cs" />
