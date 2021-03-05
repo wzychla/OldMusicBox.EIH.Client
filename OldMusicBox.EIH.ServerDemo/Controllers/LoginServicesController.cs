@@ -1,5 +1,6 @@
 ﻿using OldMusicBox.EIH.Client;
 using OldMusicBox.EIH.Client.Model;
+using OldMusicBox.EIH.Client.Signature;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -46,13 +47,37 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
             }
 
             // create encrypt and return the ArtifactResponse
+
+            // this is optional
+            var x509Configuration = new X509Configuration()
+            {
+                SignatureCertificate  = ServerCertificateProvider.GetSigCertificate(),
+                SignaturePrivateKey   = ServerCertificateProvider.GetSigPrivateKey(),
+                IncludeKeyInfo        = true,
+                SignatureAlgorithm    = SignatureAlgorithm.ECDSA256,
+                EncryptionCertificate = ServerCertificateProvider.GetEncCertificate(),
+                EncryptionPrivateKey  = ServerCertificateProvider.GetEncPrivateKey()
+            };
+
             var issuer               = ConfigurationManager.AppSettings["Issuer"];
-            var artifactResponse     = new ArtifactResponseFactory().From(artifactResolve, sessionPrincipal, issuer);
 
-            var artifactSeralized    = saml2.MessageSerializer.Serialize(artifactResponse, new Client.Serialization.MessageSerializationParameters());
-            var artifactResponseSoap = artifactSeralized.AsEnveloped();
+            var artifactResponseFactory = new ArtifactResponseFactory();
+            
+            artifactResponseFactory.X509Configuration = x509Configuration;
+            artifactResponseFactory.InResponseTo      = artifactResolve.ID;
+            artifactResponseFactory.Issuer            = issuer;
 
-            return Content(artifactResponseSoap, "text/xml");
+            var responseFactory = new ResponseFactory();
+
+            responseFactory.X509Configuration = x509Configuration;
+            responseFactory.InResponseTo      = artifactResolve.ID;
+            responseFactory.Issuer            = issuer;
+
+            artifactResponseFactory.ArtifactResponse.Response = responseFactory.Build();
+
+            var artifactResponse        = artifactResponseFactory.Create();
+
+            return Content(artifactResponse, "text/xml");
         }
 
         public ActionResult SingleLogoutService()

@@ -15,6 +15,19 @@ namespace OldMusicBox.EIH.Client
         /// <summary>
         /// Take a body and wrap it to form a SOAP envelope
         /// </summary>
+        public static string AsEnveloped(this byte[] soapBody, Encoding encoding)
+        {
+            if (soapBody == null)
+            {
+                throw new ArgumentNullException("soapBody");
+            }
+
+            return string.Format("<?xml version=\"1.0\" encoding=\"utf-8\"?><s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap-env:Header xmlns:soap-env=\"http://schemas.xmlsoap.org/soap/envelope/\"/><s:Body>{0}</s:Body></s:Envelope>", encoding.GetString( soapBody ));
+        }
+
+        /// <summary>
+        /// Take a body and wrap it to form a SOAP envelope
+        /// </summary>
         public static string AsEnveloped( this string soapBody )
         {
             if (string.IsNullOrEmpty(soapBody))

@@ -45,7 +45,7 @@ namespace OldMusicBox.EIH.Tests
                 var xs = new XmlSerializer(typeof(ArtifactResponse));
                 var artifactResponse = (ArtifactResponse)xs.Deserialize(sr);
 
-                return new Saml2SecurityToken(artifactResponse.Response.OuterXml);
+                return new Saml2SecurityToken(artifactResponse.Response);
             }
         }
 

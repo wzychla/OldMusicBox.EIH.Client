@@ -59,6 +59,7 @@
     <Compile Include="Core\Saml2SecurityToken.cs" />
     <Compile Include="Core\Saml2SecurityTokenHandler.cs" />
     <Compile Include="Core\SignedXmlEx.cs" />
+    <Compile Include="Core\StringWriter8.cs" />
     <Compile Include="Decryption\AssertionDecryptor.cs" />
     <Compile Include="Decryption\AssertionEncryptor.cs" />
     <Compile Include="Logging\AbstractLogger.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="Model\Response\Assertion.cs" />
     <Compile Include="Model\Response\EncryptedAssertion.cs" />
     <Compile Include="Model\Response\Response.cs" />
+    <Compile Include="Model\Response\ResponseFactory.cs" />
     <Compile Include="Model\Response\Signature.cs" />
     <Compile Include="Model\Response\Status.cs" />
     <Compile Include="Model\X509Configuration.cs" />

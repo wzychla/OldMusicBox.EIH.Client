@@ -15,7 +15,7 @@ namespace OldMusicBox.EIH.ServerDemo
     /// Client uses the cert to sign SAML2 requests 
     /// sent to the server
     /// </summary>
-    public class ClientCertificateProvider
+    public class ServerCertificateProvider
     {
         private static Pkcs12Store _clientSigStore;
 

@@ -211,7 +211,7 @@ namespace OldMusicBox.EIH.Client
             {
                 if (artifactResponse.Status.StatusCode.Value == StatusCodes.SUCCESS)
                 {
-                    return new Saml2SecurityToken(artifactResponse.Response.OuterXml);
+                    return new Saml2SecurityToken(artifactResponse.Response);
                 }
                 else
                 {

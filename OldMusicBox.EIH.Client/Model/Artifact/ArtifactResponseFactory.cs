@@ -12,26 +12,49 @@ namespace OldMusicBox.EIH.Client.Model
     /// </summary>
     public class ArtifactResponseFactory : BaseFactory
     {
-        public ArtifactResponse From( ArtifactResolve res, ClaimsPrincipal principal, string issuer )
+        public ArtifactResponseFactory()
         {
-            if ( res == null || principal == null )
+            this.ArtifactResponse = new ArtifactResponse();
+
+            this.ArtifactResponse.ID           = "_" + Guid.NewGuid();
+            this.ArtifactResponse.Version      = "2.0";
+            this.ArtifactResponse.IssueInstant = DateTime.UtcNow;
+
+            this.ArtifactResponse.Status       = Status.Success;
+        }
+
+        public string Issuer
+        {
+            get
             {
-                throw new ArgumentNullException();
+                return this.ArtifactResponse.Issuer;
             }
+            set
+            {
+                this.ArtifactResponse.Issuer = value;
+            }
+        }
 
-            var response = new ArtifactResponse();
+        public string InResponseTo
+        {
+            get
+            {
+                return this.ArtifactResponse.InResponseTo;
+            }
+            set
+            {
+                this.ArtifactResponse.InResponseTo = value;
+            }
+        }
 
-            response.ID           = "_" + Guid.NewGuid();
-            response.Version      = "2.0";
-            response.IssueInstant = DateTime.UtcNow;
-            response.Consent      = Constants.Consent.UNSPECIFIED;
+        public ArtifactResponse ArtifactResponse { get; set; }
 
-            response.InResponseTo = res.ID;
-            response.Issuer       = issuer;
+        public X509Configuration X509Configuration { get; set; }
 
-            response.Status       = Status.Success;
-
-            return response;
+        public virtual string Create()
+        {
+            var signedArtifact = this.MessageSigner.Sign(this.ArtifactResponse, this.X509Configuration);
+            return signedArtifact.AsEnveloped(this.Encoding);
         }
     }
 }
