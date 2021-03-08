@@ -85,6 +85,7 @@
     <Compile Include="Model\Request\AuthnRequestFactory.cs" />
     <Compile Include="Model\Response\Assertion.cs" />
     <Compile Include="Model\Response\EncryptedAssertion.cs" />
+    <Compile Include="Model\Response\EncryptedAssertionFactory.cs" />
     <Compile Include="Model\Response\Response.cs" />
     <Compile Include="Model\Response\ResponseFactory.cs" />
     <Compile Include="Model\Response\Signature.cs" />

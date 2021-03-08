@@ -86,6 +86,9 @@ namespace OldMusicBox.EIH.Client.Decryption
             public string KeyEncryptionMethod;
         }
 
+        /// <summary>
+        /// Public decrypt method
+        /// </summary>
         public Assertion Decrypt(
             Saml2SecurityToken token,
             AsymmetricKeyParameter privateKey)
@@ -158,22 +161,27 @@ namespace OldMusicBox.EIH.Client.Decryption
 
             // token
             var encryptedData = token.Response.EncryptedAssertion.FirstOrDefault().EncryptedData;
+            if ( encryptedData == null ) { throw new ArgumentException("Encrypted Assertion doesn't contain EncryptedData section"); }
             var encryptedKey  = token.Response.EncryptedAssertion.FirstOrDefault().EncryptedData.KeyInfo.EncryptedKey;
+            if ( encryptedKey == null ) { throw new ArgumentException("Encrypted Assertion doesn't contain EncryptedKey section"); }
 
+            // encryption key
             returnedValue.KeyEncryptionMethod = encryptedKey.EncryptionMethod.Algorithm;
-            returnedValue.PublicKeyBytes = Convert.FromBase64String(encryptedKey.KeyInfo.AgreementMethod.OriginatorKeyInfo.KeyValue.ECKeyValue.PublicKey.Text);
-            returnedValue.NamedCurveOid = encryptedKey.KeyInfo.AgreementMethod.OriginatorKeyInfo.KeyValue.ECKeyValue.NamedCurve.URI.Replace("urn:oid:", "");
+            returnedValue.PublicKeyBytes      = Convert.FromBase64String(encryptedKey.KeyInfo.AgreementMethod.OriginatorKeyInfo.KeyValue.ECKeyValue.PublicKey.Text);
+            returnedValue.NamedCurveOid       = encryptedKey.KeyInfo.AgreementMethod.OriginatorKeyInfo.KeyValue.ECKeyValue.NamedCurve.URI.Replace("urn:oid:", "");
 
-            var concatKDFParams = encryptedKey.KeyInfo.AgreementMethod.KeyDerivationMethod.ConcatKDFParams;
-
-            returnedValue.AlgorithmID = concatKDFParams.AlgorithmID;
-            returnedValue.PartyUInfo = concatKDFParams.PartyUInfo;
-            returnedValue.PartyVInfo = concatKDFParams.PartyVInfo;
+            var concatKDFParams       = encryptedKey.KeyInfo.AgreementMethod.KeyDerivationMethod.ConcatKDFParams;
+            returnedValue.AlgorithmID = concatKDFParams.AlgorithmID; // "http://www.w3.org/2001/04/xmlenc#kw-aes256" in hex encoding
+            returnedValue.PartyUInfo  = concatKDFParams.PartyUInfo;  // issuer domain in hex encoding (e.g. 6C6F63616C686F73742E776B2E676F762E706C=localhost.wk.gov.pl)
+            returnedValue.PartyVInfo  = concatKDFParams.PartyVInfo;  // receiver domain in hex encoding (e.g. 687474703A2F2F6C6F63616C686F73742E73702E706C=http://localhost.sp.pl)
 
             returnedValue.DigestMethodString = concatKDFParams.DigestMethod.Algorithm.Substring(concatKDFParams.DigestMethod.Algorithm.IndexOf("#") + 1);
 
+            // aes GCM key cipher
+            returnedValue.EncryptedKeyCipher  = encryptedKey.CipherData.CipherValue.Text;
+
+            // actual cipher data (saml:Response)
             returnedValue.EncryptedDataCipher = encryptedData.CipherData.CipherValue.Text;
-            returnedValue.EncryptedKeyCipher = encryptedKey.CipherData.CipherValue.Text;
 
             return returnedValue;
         }

@@ -70,6 +70,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\encryptedEC.cipher.xml" />
     <Content Include="Resources\encryptedEC.decrypted.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

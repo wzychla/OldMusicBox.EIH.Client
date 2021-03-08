@@ -43,7 +43,7 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
 
             if ( sessionPrincipal == null )
             {
-                throw new ApplicationException("No session associated for given artifact");
+                throw new ApplicationException("No session associated for given artifact. This is a demo app and it stores sessions in memory. Restart your server then.");
             }
 
             // create encrypt and return the ArtifactResponse
@@ -61,18 +61,19 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
 
             var issuer               = ConfigurationManager.AppSettings["Issuer"];
 
-            var artifactResponseFactory = new ArtifactResponseFactory();
-            
-            artifactResponseFactory.X509Configuration = x509Configuration;
-            artifactResponseFactory.InResponseTo      = artifactResolve.ID;
-            artifactResponseFactory.Issuer            = issuer;
-
-            var responseFactory = new ResponseFactory();
+            var responseFactory           = new ResponseFactory();
+            var artifactResponseFactory   = new ArtifactResponseFactory();
+            var encryptedAssertionFactory = new EncryptedAssertionFactory();
 
             responseFactory.X509Configuration = x509Configuration;
             responseFactory.InResponseTo      = artifactResolve.ID;
             responseFactory.Issuer            = issuer;
 
+            artifactResponseFactory.X509Configuration = x509Configuration;
+            artifactResponseFactory.InResponseTo      = artifactResolve.ID;
+            artifactResponseFactory.Issuer            = issuer;
+
+            responseFactory.EncryptedAssertions               = encryptedAssertionFactory.Build();
             artifactResponseFactory.ArtifactResponse.Response = responseFactory.Build();
 
             var artifactResponse        = artifactResponseFactory.Create();
