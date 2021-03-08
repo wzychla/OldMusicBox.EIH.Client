@@ -14,6 +14,8 @@ Please refer to the change list and the road map below.
 
 |  Feature  | Status |
 |----|:---:|
+|Client demo|**yes**|
+|Server demo|work in progress|
 |NuGet|**yes**|
 |Single Sign On|**yes**|
 |Single Log Out|**yes**|
@@ -52,6 +54,9 @@ straightforward to rewrite the BouncyCastle code, however
 it was not that easy to rewrite the **org.apache.xml.security.encryption.XMLCipher** code. 
 
 ## Version History:
+
+* 0.51 (2021-03-08)
+    * server demo slowly gets into shape
 
 * 0.5 (2020-12-18)
     * assertion decryption test passes
