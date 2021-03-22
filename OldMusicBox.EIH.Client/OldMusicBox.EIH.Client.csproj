@@ -60,6 +60,7 @@
     <Compile Include="Core\Saml2SecurityTokenHandler.cs" />
     <Compile Include="Core\SignedXmlEx.cs" />
     <Compile Include="Core\StringWriter8.cs" />
+    <Compile Include="Decryption\AssertionCrypto.cs" />
     <Compile Include="Decryption\AssertionDecryptor.cs" />
     <Compile Include="Decryption\AssertionEncryptor.cs" />
     <Compile Include="Logging\AbstractLogger.cs" />

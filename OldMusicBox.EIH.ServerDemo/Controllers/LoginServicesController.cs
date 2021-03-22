@@ -61,8 +61,8 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
 
             var issuer               = ConfigurationManager.AppSettings["Issuer"];
 
-            var responseFactory           = new ResponseFactory();
             var artifactResponseFactory   = new ArtifactResponseFactory();
+            var responseFactory           = new ResponseFactory();
             var encryptedAssertionFactory = new EncryptedAssertionFactory();
 
             responseFactory.X509Configuration = x509Configuration;

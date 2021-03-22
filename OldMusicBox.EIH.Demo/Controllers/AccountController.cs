@@ -150,7 +150,7 @@ namespace OldMusicBox.EIH.Demo.Controllers
                 var configuration = new SecurityTokenHandlerConfiguration
                 {
                     CertificateValidator = X509CertificateValidator.None,
-                    IssuerNameRegistry = new DemoClientIssuerNameRegistry(),
+                    IssuerNameRegistry   = new DemoClientIssuerNameRegistry(),
                     DetectReplayedTokens = false
                 };
                 configuration.AudienceRestriction.AudienceMode = AudienceUriMode.Never;

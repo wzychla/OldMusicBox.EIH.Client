@@ -25,7 +25,7 @@ namespace OldMusicBox.EIH.Client.Decryption
     /// <summary>
     /// Electronic Identification Hub (Węzeł Krajowy) assertion decryptor
     /// </summary>
-    public class AssertionDecryptor
+    public class AssertionDecryptor : AssertionCrypto
     {
         /*
 		<saml2:EncryptedAssertion>
@@ -64,14 +64,8 @@ namespace OldMusicBox.EIH.Client.Decryption
 			</xenc:EncryptedData>
 		</saml2:EncryptedAssertion>
         */
-        public class RequiredParameters
+        public class RequiredParameters : AssertionCrypto.RequiredParametersBase
         {
-            // Parametr KDF - algorithmID
-            public string AlgorithmID;
-            // Parametr KDF - partyUInfo, identyfikator nadawcy
-            public string PartyUInfo;
-            // Parametr KDF - partyVInfo, identyfikator odbiorcy
-            public string PartyVInfo;
             // Identyfikator funkcji skrotu w operacji KDF
             public string DigestMethodString;
             // Identyfikator krzywej
@@ -82,8 +76,6 @@ namespace OldMusicBox.EIH.Client.Decryption
             public string EncryptedDataCipher;
             // Zaszyfrowany klucz
             public string EncryptedKeyCipher;
-            // Algorytm uzyty do zaszyfrowania klucza
-            public string KeyEncryptionMethod;
         }
 
         /// <summary>
@@ -111,30 +103,11 @@ namespace OldMusicBox.EIH.Client.Decryption
             keyAgreement.Init(privateKey);
 
             // zrzucenie efektu key agreement do tablicy
-            byte[] sharedSecret = keyAgreement.CalculateAgreement(ecPublicKey).ToByteArrayUnsigned();
+            byte[] sharedSecret  = keyAgreement.CalculateAgreement(ecPublicKey).ToByteArrayUnsigned();
             IDigest digestMethod = DigestUtilities.GetDigest(parameters.DigestMethodString);
 
-            // Wyznaczenie rozmiaru klucza do odwrappowania
-            // metoda uproszczona majaca pokazac ogolny mechanizm
-            int wrappedKeyArraySize = -1;
-            if (parameters.KeyEncryptionMethod.Contains("kw-aes256"))
-            {
-                wrappedKeyArraySize = 256 / 8;
-            }
-            else if (parameters.KeyEncryptionMethod.Contains("kw-aes128"))
-            {
-                wrappedKeyArraySize = 128 / 8;
-            }
-            else if (parameters.KeyEncryptionMethod.Contains("kw-aes192"))
-            {
-                wrappedKeyArraySize = 192 / 8;
-            }
-
-            // wartosc wynika z zastosowanej dlugosci klucza w algorytmie KeyWrapping
-            byte[] wrappedKeyBytes = new byte[wrappedKeyArraySize];
-
             // wykonanie funkcji KDF
-            this.DeriveKey(parameters, sharedSecret, wrappedKeyBytes, digestMethod, wrappedKeyArraySize);
+            byte[] wrappedKeyBytes = this.DeriveKey(parameters, sharedSecret, digestMethod);
 
             // odszyfrowanie klucza ktorym nadawca zaszyfrowal dane
             KeyParameter keyParameter = ParameterUtilities.CreateKeyParameter("AES", wrappedKeyBytes);
@@ -184,35 +157,6 @@ namespace OldMusicBox.EIH.Client.Decryption
             returnedValue.EncryptedDataCipher = encryptedData.CipherData.CipherValue.Text;
 
             return returnedValue;
-        }
-
-        private void DeriveKey(
-            RequiredParameters parameters,
-            byte[] sharedSecretBytes,
-            byte[] wrappedKeyBytes,
-            IDigest dm,
-            int length)
-        {
-            ConcatenationKdfGenerator ckdf = new ConcatenationKdfGenerator(dm);
-
-            byte[] algid = Hex.Decode(parameters.AlgorithmID);
-            byte[] uinfo = Hex.Decode(parameters.PartyUInfo);
-            byte[] vinfo = Hex.Decode(parameters.PartyVInfo);
-
-            ckdf.Init(new KdfParameters(sharedSecretBytes, Concatenate(algid, uinfo, vinfo)));
-            ckdf.GenerateBytes(wrappedKeyBytes, 0, length);
-        }
-
-        private byte[] Concatenate(params byte[][] arrays)
-        {
-            byte[] rv = new byte[arrays.Sum(a => a.Length)];
-            int offset = 0;
-            foreach (byte[] array in arrays)
-            {
-                System.Buffer.BlockCopy(array, 0, rv, offset, array.Length);
-                offset += array.Length;
-            }
-            return rv;
         }
 
         private static ECDomainParameters GetCurveParameters(string oid)

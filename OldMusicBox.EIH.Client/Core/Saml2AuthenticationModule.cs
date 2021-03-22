@@ -191,7 +191,7 @@ namespace OldMusicBox.EIH.Client
         /// <summary>
         /// Unpacks the token from the ArtifactResponse response
         /// </summary>
-        private Saml2SecurityToken ParseArtifactResponse( string artifactResponseSOAP )
+        public Saml2SecurityToken ParseArtifactResponse( string artifactResponseSOAP )
         {
             // unpack the SOAP envelope
             string artifactResponseString = artifactResponseSOAP.FromEnveloped();
