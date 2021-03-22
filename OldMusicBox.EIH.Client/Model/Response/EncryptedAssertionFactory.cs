@@ -28,7 +28,7 @@ namespace OldMusicBox.EIH.Client.Model
         /// </summary>
         public string ConsumerDomain { get; set; }
 
-        public Org.BouncyCastle.X509.X509Certificate EncryptionKey { get; set; }
+        public X509Configuration X509Configuration { get; set; }
 
         /// <summary>
         /// Create encrypted assertion
@@ -40,7 +40,8 @@ namespace OldMusicBox.EIH.Client.Model
                 this.Principal,
                 this.IssuerDomain,
                 this.ConsumerDomain,
-                this.EncryptionKey );
+                this.X509Configuration.EncryptionCertificate, 
+                this.X509Configuration.EncryptionPrivateKey);
 
             return new[] 
             { 

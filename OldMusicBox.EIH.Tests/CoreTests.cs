@@ -16,9 +16,12 @@ namespace OldMusicBox.EIH.Tests
         [TestMethod]
         public void BasicDecryptionTest()
         {
+            string certName = "du_enc_ec";
+
             // arrange
             var token            = GetSecurityTokenFromAssertionResponse();
-            var privateKey       = ClientCertificateProvider.GetEncPrivateKey();
+            var certificate      = ClientCertificateProvider.GetCertificate(certName);
+            var privateKey       = ClientCertificateProvider.GetPrivateKey(certName);
 
             // act
             var decrypted = new AssertionDecryptor().Decrypt(token, privateKey);

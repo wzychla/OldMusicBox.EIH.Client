@@ -1,4 +1,5 @@
 ﻿using OldMusicBox.EIH.Client.Constants;
+using OldMusicBox.EIH.Client.Crypto;
 using OldMusicBox.EIH.Client.Model;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
@@ -66,10 +67,6 @@ namespace OldMusicBox.EIH.Client.Decryption
         */
         public class RequiredParameters : AssertionCrypto.RequiredParametersBase
         {
-            // Identyfikator funkcji skrotu w operacji KDF
-            public string DigestMethodString;
-            // Identyfikator krzywej
-            public string NamedCurveOid;
             // Dane klucza publicznego efemerycznego nadawcy
             public byte[] PublicKeyBytes;
             // Zaszyfrowane dane
@@ -92,7 +89,7 @@ namespace OldMusicBox.EIH.Client.Decryption
             // Procedura bazuje na paraemtrach odczytanych z danych od dostawcy tozsamosci 'OriginatorKeyInfo'
             ECDomainParameters ecNamedCurveParameterSpec = GetCurveParameters(parameters.NamedCurveOid);
 
-            ECCurve curve = ecNamedCurveParameterSpec.Curve;
+            ECCurve curve   = ecNamedCurveParameterSpec.Curve;
             ECPoint ecPoint = curve.DecodePoint(parameters.PublicKeyBytes);
 
             // klucz publiczny efemeryczny nadawcy
@@ -116,8 +113,8 @@ namespace OldMusicBox.EIH.Client.Decryption
             // uzycie klucza uzyskanego powyzej do odszyfrowania danych (asercji)
             var cipherText = Convert.FromBase64String(parameters.EncryptedDataCipher);
 
-            EncryptionService es = new EncryptionService(256, 128, 96);
-            byte[] decryptedDoc = es.DecryptWithKey(cipherText, encryptionKey);
+            EncryptionService es   = new EncryptionService(256, 128, 96);
+            byte[] decryptedDoc    = es.DecryptWithKey(cipherText, encryptionKey);
             string decryptedString = Encoding.UTF8.GetString(decryptedDoc);
 
             using (StringReader sr = new StringReader(decryptedString))
@@ -158,198 +155,8 @@ namespace OldMusicBox.EIH.Client.Decryption
 
             return returnedValue;
         }
-
-        private static ECDomainParameters GetCurveParameters(string oid)
-        {
-            X9ECParameters ecP = ECNamedCurveTable.GetByOid(new DerObjectIdentifier(oid));
-
-            if (ecP == null)
-                throw new Exception("Unknown curve oid: " + oid);
-
-            return new ECDomainParameters(ecP.Curve, ecP.G, ecP.N, ecP.H, ecP.GetSeed());
-        }
     }
 
-
-    /// <summary>
-    /// Code taken from this Stack question: 
-    /// http://codereview.stackexchange.com/questions/14892/review-of-simplified-secure-encryption-of-a-string
-    /// https://github.com/lukemerrett/Bouncy-Castle-AES-GCM-Encryption
-    /// 
-    /// The below code uses AES GCM using a 256bit key.
-    /// 
-    /// A non secret payload byte[] can be provided as well that won't be encrypted but will be authenticated with GCM.
-    /// </summary>
-    public class EncryptionService
-    {
-        #region Constants and Fields
-
-        private const int DEFAULT_KEY_BIT_SIZE = 256;
-        private const int DEFAULT_MAC_BIT_SIZE = 128;
-        private const int DEFAULT_NONCE_BIT_SIZE = 128;
-
-        private readonly int _keySize;
-        private readonly int _macSize;
-        private readonly int _nonceSize;
-
-        private readonly SecureRandom _random;
-
-        #endregion
-
-        #region Constructors and Destructors
-
-        public EncryptionService()
-            : this(DEFAULT_KEY_BIT_SIZE, DEFAULT_MAC_BIT_SIZE, DEFAULT_NONCE_BIT_SIZE)
-        { }
-
-        public EncryptionService(int keyBitSize, int macBitSize, int nonceBitSize)
-        {
-            _random = new SecureRandom();
-
-            _keySize = keyBitSize;
-            _macSize = macBitSize;
-            _nonceSize = nonceBitSize;
-        }
-
-        #endregion
-
-        #region Public Methods and Operators
-
-        /// <summary>
-        /// Simple Decryption & Authentication (AES-GCM) of a UTF8 Message
-        /// </summary>
-        public string DecryptWithKey(string encryptedMessage, string key, int nonSecretPayloadLength = 0)
-        {
-            if (string.IsNullOrEmpty(encryptedMessage))
-            {
-                throw new ArgumentException("Encrypted Message Required!", "encryptedMessage");
-            }
-
-            var decodedKey = Convert.FromBase64String(key);
-            var cipherText = Convert.FromBase64String(encryptedMessage);
-            var plaintext = DecryptWithKey(cipherText, decodedKey, nonSecretPayloadLength);
-
-            return Encoding.UTF8.GetString(plaintext);
-        }
-
-        /// <summary>
-        /// Simple Encryption And Authentication (AES-GCM) of a UTF8 string.
-        /// </summary>
-        public string EncryptWithKey(string messageToEncrypt, string key, byte[] nonSecretPayload = null)
-        {
-            if (string.IsNullOrEmpty(messageToEncrypt))
-            {
-                throw new ArgumentException("Secret Message Required!", "messageToEncrypt");
-            }
-
-            var decodedKey = Convert.FromBase64String(key);
-
-            var plainText = Encoding.UTF8.GetBytes(messageToEncrypt);
-            var cipherText = EncryptWithKey(plainText, decodedKey, nonSecretPayload);
-            return Convert.ToBase64String(cipherText);
-        }
-
-        /// <summary>
-        /// Helper that generates a random new key on each call.
-        /// </summary>
-        /// <returns>Base 64 encoded string</returns>
-        public string NewKey()
-        {
-            var key = new byte[_keySize / 8];
-            _random.NextBytes(key);
-            return Convert.ToBase64String(key);
-        }
-
-        #endregion
-
-        #region Methods
-
-        public byte[] DecryptWithKey(byte[] encryptedMessage, byte[] key, int nonSecretPayloadLength = 0)
-        {
-            //User Error Checks
-            CheckKey(key);
-
-            if (encryptedMessage == null || encryptedMessage.Length == 0)
-            {
-                throw new ArgumentException("Encrypted Message Required!", "encryptedMessage");
-            }
-
-            using (var cipherStream = new MemoryStream(encryptedMessage))
-            using (var cipherReader = new BinaryReader(cipherStream))
-            {
-                //Grab Payload
-                var nonSecretPayload = cipherReader.ReadBytes(nonSecretPayloadLength);
-
-                //Grab Nonce
-                var nonce = cipherReader.ReadBytes(_nonceSize / 8);
-
-                var cipher = new GcmBlockCipher(new AesEngine());
-
-                //var cipher = new GcmBlockCipher(new AesEngine());
-                var parameters = new AeadParameters(new KeyParameter(key), _macSize, nonce, nonSecretPayload);
-                cipher.Init(false, parameters);
-
-                //Decrypt Cipher Text
-                var cipherText = cipherReader.ReadBytes(encryptedMessage.Length - nonSecretPayloadLength - nonce.Length);
-                var plainText = new byte[cipher.GetOutputSize(cipherText.Length)];
-
-                var len = cipher.ProcessBytes(cipherText, 0, cipherText.Length, plainText, 0);
-
-                string decoded = Encoding.UTF8.GetString(plainText);
-
-                cipher.DoFinal(plainText, len);
-
-                return plainText;
-            }
-        }
-
-        public byte[] EncryptWithKey(byte[] messageToEncrypt, byte[] key, byte[] nonSecretPayload = null)
-        {
-            //User Error Checks
-            CheckKey(key);
-
-            //Non-secret Payload Optional
-            nonSecretPayload = nonSecretPayload ?? new byte[] { };
-
-            //Using random nonce large enough not to repeat
-            var nonce = new byte[_nonceSize / 8];
-            _random.NextBytes(nonce, 0, nonce.Length);
-
-            var cipher = new GcmBlockCipher(new AesEngine());
-            var parameters = new AeadParameters(new KeyParameter(key), _macSize, nonce, nonSecretPayload);
-            cipher.Init(true, parameters);
-
-            //Generate Cipher Text With Auth Tag
-            var cipherText = new byte[cipher.GetOutputSize(messageToEncrypt.Length)];
-            var len = cipher.ProcessBytes(messageToEncrypt, 0, messageToEncrypt.Length, cipherText, 0);
-            cipher.DoFinal(cipherText, len);
-
-            //Assemble Message
-            using (var combinedStream = new MemoryStream())
-            {
-                using (var binaryWriter = new BinaryWriter(combinedStream))
-                {
-                    //Prepend Authenticated Payload
-                    binaryWriter.Write(nonSecretPayload);
-                    //Prepend Nonce
-                    binaryWriter.Write(nonce);
-                    //Write Cipher Text
-                    binaryWriter.Write(cipherText);
-                }
-                return combinedStream.ToArray();
-            }
-        }
-
-        private void CheckKey(byte[] key)
-        {
-            if (key == null || key.Length != _keySize / 8)
-            {
-                throw new ArgumentException(String.Format("Key needs to be {0} bit! actual:{1}", _keySize, key?.Length * 8), "key");
-            }
-        }
-
-        #endregion
-    }
 }
 
 

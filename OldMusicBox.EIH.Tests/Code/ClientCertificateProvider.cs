@@ -1,6 +1,7 @@
 ﻿using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.X509;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -13,37 +14,35 @@ namespace OldMusicBox.EIH.Tests
     /// </summary>
     public class ClientCertificateProvider
     {
-        private static Pkcs12Store _clientSigStore;
+        private static Dictionary<string, Pkcs12Store> _clientStore = new Dictionary<string, Pkcs12Store>();
 
-        private static Pkcs12Store _clientEncStore;
-
-        private static Pkcs12Store GetEncCertStore()
+        private static Pkcs12Store GetCertStore(string certName)
         {
-            if (_clientEncStore == null)
+            if (!_clientStore.ContainsKey(certName))
             {
-                var path = Directory.GetCurrentDirectory() + @"/Resources/du_enc_ec.p12";
+                var path = Directory.GetCurrentDirectory() + $@"/Resources/{certName}.p12";
                 var pwd = "12345";
 
-                _clientEncStore = new Pkcs12Store();
+                _clientStore.Add(certName, new Pkcs12Store());
                 using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    _clientEncStore.Load(fs, pwd.ToCharArray());
+                    _clientStore[certName].Load(fs, pwd.ToCharArray());
                 }
             }
 
-            return _clientEncStore;
+            return _clientStore[certName];
         }
 
-        public static X509Certificate GetEncCertificate()
+        public static X509Certificate GetCertificate(string certName)
         {
-            var alias = GetEncCertStore().Aliases.Cast<string>().First();
-            return GetEncCertStore().GetCertificate(alias).Certificate;
+            var alias = GetCertStore(certName).Aliases.Cast<string>().First();
+            return GetCertStore(certName).GetCertificate(alias).Certificate;
         }
 
-        public static AsymmetricKeyParameter GetEncPrivateKey()
+        public static AsymmetricKeyParameter GetPrivateKey(string certName)
         {
-            var alias = GetEncCertStore().Aliases.Cast<string>().First();
-            return GetEncCertStore().GetKey(alias).Key;
+            var alias = GetCertStore(certName).Aliases.Cast<string>().First();
+            return GetCertStore(certName).GetKey(alias).Key;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Crypto;
+﻿using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement.Kdf;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -8,12 +10,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OldMusicBox.EIH.Client
+namespace OldMusicBox.EIH.Client.Crypto
 {
     public abstract class AssertionCrypto
     {
         public class RequiredParametersBase
         {
+            // Elliptic curve OID
+            public string NamedCurveOid;
             // Parametr KDF - algorithmID
             public string AlgorithmID;
             // Parametr KDF - partyUInfo, identyfikator nadawcy
@@ -22,6 +26,18 @@ namespace OldMusicBox.EIH.Client
             public string PartyVInfo;
             // Algorytm uzyty do zaszyfrowania klucza
             public string KeyEncryptionMethod;
+            // Identyfikator funkcji skrotu w operacji KDF
+            public string DigestMethodString;
+        }
+
+        public ECDomainParameters GetCurveParameters(string oid)
+        {
+            X9ECParameters ecP = ECNamedCurveTable.GetByOid(new DerObjectIdentifier(oid));
+
+            if (ecP == null)
+                throw new Exception("Unknown curve oid: " + oid);
+
+            return new ECDomainParameters(ecP.Curve, ecP.G, ecP.N, ecP.H, ecP.GetSeed());
         }
 
         public byte[] Concatenate(params byte[][] arrays)

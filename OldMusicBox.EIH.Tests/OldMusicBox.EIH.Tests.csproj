@@ -64,6 +64,12 @@
     <None Include="Resources\du_enc_ec.p12">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Resources\ExampleEncryptionCertificate.p12">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\ExampleSigningCertificate.p12">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OldMusicBox.EIH.Client\OldMusicBox.EIH.Client.csproj">
