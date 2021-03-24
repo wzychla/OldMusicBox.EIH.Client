@@ -129,13 +129,13 @@ namespace OldMusicBox.EIH.Client.Encryption
             requiredParameters.KeyEncryptionMethod = KwAesAlgorithm;
 
             // fill-in initial data
-            this.CreateDerivedKeySection(assertion, requiredParameters, encryptionKey);
+            this.CreateDerivedKeySection(assertion, requiredParameters);
 
             // compute kw-aes public key from the client's public certificate
             ECPoint publicSessionKey = this.CreatePublicKeyBytes(assertion, requiredParameters, encryptionKey);
 
             // encrypt session key
-            byte[] sessionKey = this.EncryptSessionKey(publicSessionKey, assertion, requiredParameters, encryptionKey, privateKey);
+            byte[] sessionKey = this.EncryptSessionKey(publicSessionKey, assertion, requiredParameters, privateKey);
 
             this.EncryptPrincipal(sessionKey, assertion, principal);
 
@@ -202,7 +202,6 @@ namespace OldMusicBox.EIH.Client.Encryption
             ECPoint publicKey,
             EncryptedAssertion assertion,
             RequiredParameters requiredParameters,
-            Org.BouncyCastle.X509.X509Certificate encryptionKey,
             AsymmetricKeyParameter privateKey
             )
         {
@@ -218,7 +217,6 @@ namespace OldMusicBox.EIH.Client.Encryption
             // Wykonanie operacji KeyAgreement
             IBasicAgreement keyAgreement = AgreementUtilities.GetBasicAgreement("ECDH");
             keyAgreement.Init(privateKey);
-            // keyAgreement.Init(new ECPrivateKeyParameters(new Org.BouncyCastle.Math.BigInteger(publicKey.GetEncoded()), ecNamedCurveParameterSpec));
 
             // zrzucenie efektu key agreement do tablicy
             byte[] sharedSecret  = keyAgreement.CalculateAgreement(ecPublicKey).ToByteArrayUnsigned();
@@ -234,12 +232,12 @@ namespace OldMusicBox.EIH.Client.Encryption
             encryptedKeySection.CipherData.CipherValue.Text = Convert.ToBase64String(sessionKey);
 
             return wrappedKeyBytes;
+            //return sessionKey;
         }
 
         private void CreateDerivedKeySection(
             EncryptedAssertion assertion,
-            RequiredParameters requiredParameters,
-            Org.BouncyCastle.X509.X509Certificate encryptionKey
+            RequiredParameters requiredParameters
             )
         {
             // key
@@ -262,13 +260,15 @@ namespace OldMusicBox.EIH.Client.Encryption
             var encryptedKey = assertion.EncryptedData.KeyInfo.EncryptedKey;
 
             // compute public key
-            ECDomainParameters ecNamedCurveParameterSpec = GetCurveParameters(requiredParameters.NamedCurveOid);
-            ECCurve curve                                = ecNamedCurveParameterSpec.Curve;
+            //ECDomainParameters ecNamedCurveParameterSpec = GetCurveParameters(requiredParameters.NamedCurveOid);
+            //ECCurve curve                                = ecNamedCurveParameterSpec.Curve;
 
-            ECPoint q = (encryptionKey.GetPublicKey() as ECPublicKeyParameters).Q;
-            q.Normalize();
+            ECPoint ecPoint = (encryptionKey.GetPublicKey() as ECPublicKeyParameters).Q;
+            //ECPoint q = (encryptionKey.GetPublicKey() as ECPublicKeyParameters).Q;
+            //q.Normalize();
 
-            ECPoint ecPoint = curve.CreatePoint(q.XCoord.ToBigInteger(), q.YCoord.ToBigInteger());
+            //ECPoint ecPoint = curve.CreatePoint(q.XCoord.ToBigInteger(), q.YCoord.ToBigInteger());
+            //ecPoint.Normalize();
 
             // fill
             encryptedKey.KeyInfo.AgreementMethod.OriginatorKeyInfo.KeyValue.ECKeyValue.PublicKey.Text = Convert.ToBase64String(ecPoint.GetEncoded());

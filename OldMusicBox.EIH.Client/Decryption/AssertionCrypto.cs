@@ -14,20 +14,28 @@ namespace OldMusicBox.EIH.Client.Crypto
 {
     public abstract class AssertionCrypto
     {
-        public class RequiredParametersBase
+        public interface IKDFParams
+        {
+            string AlgorithmID { get; }
+            string PartyUInfo { get; }
+            string PartyVInfo { get; }
+            string KeyEncryptionMethod { get; }
+        }
+
+        public class RequiredParametersBase : IKDFParams
         {
             // Elliptic curve OID
-            public string NamedCurveOid;
+            public string NamedCurveOid { get; set; }
             // Parametr KDF - algorithmID
-            public string AlgorithmID;
+            public string AlgorithmID { get; set; }
             // Parametr KDF - partyUInfo, identyfikator nadawcy
-            public string PartyUInfo;
+            public string PartyUInfo { get; set; }
             // Parametr KDF - partyVInfo, identyfikator odbiorcy
-            public string PartyVInfo;
+            public string PartyVInfo { get; set; }
             // Algorytm uzyty do zaszyfrowania klucza
-            public string KeyEncryptionMethod;
+            public string KeyEncryptionMethod { get; set; }
             // Identyfikator funkcji skrotu w operacji KDF
-            public string DigestMethodString;
+            public string DigestMethodString { get; set; }
         }
 
         public ECDomainParameters GetCurveParameters(string oid)
@@ -53,7 +61,7 @@ namespace OldMusicBox.EIH.Client.Crypto
         }
 
         public byte[] DeriveKey(
-            AssertionCrypto.RequiredParametersBase parameters,
+            AssertionCrypto.IKDFParams parameters,
             byte[] sharedSecretBytes,
             IDigest dm)
         {

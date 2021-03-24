@@ -25,13 +25,21 @@ namespace OldMusicBox.EIH.Tests
         [TestMethod]
         public void EncryptDecryptTest()
         {
-            string serverCertName = "du_enc_ec";
+            string serverCertName = "ExampleSigningCertificate";
+            string serverCertPwd  = "123456";
+            string clientCertName = "ExampleEncryptionCertificate";
+            string clientCertPwd  = "123456";
 
             string name   = "foo";
             string issuer = "foo.bar.qux";
 
+            Org.BouncyCastle.X509.X509Certificate _serverCert                = ClientCertificateProvider.GetCertificate(serverCertName, serverCertPwd);
+            Org.BouncyCastle.Crypto.AsymmetricKeyParameter _serverPrivateKey = ClientCertificateProvider.GetPrivateKey(serverCertName, serverCertPwd);
+
+            Org.BouncyCastle.X509.X509Certificate _clientCert = ClientCertificateProvider.GetCertificate(clientCertName, clientCertPwd);
+            Org.BouncyCastle.Crypto.AsymmetricKeyParameter _clientPrivateKey = ClientCertificateProvider.GetPrivateKey(clientCertName, clientCertPwd);
+
             // arrange
-            var certificate = ClientCertificateProvider.GetCertificate(serverCertName);
             var principal =
                 new ClaimsPrincipal(
                     new ClaimsIdentity(
@@ -46,17 +54,25 @@ namespace OldMusicBox.EIH.Tests
             var artifactResponseFactory   = new ArtifactResponseFactory();
             var responseFactory           = new ResponseFactory();
             var encryptedAssertionFactory = new EncryptedAssertionFactory();
+            var saml2module               = new Saml2AuthenticationModule();
 
-            var saml2module = new Saml2AuthenticationModule();
-
-            var x509Configuration = new X509Configuration()
+            var server509Configuration = new X509Configuration()
             {
-                SignatureCertificate  = ClientCertificateProvider.GetCertificate(serverCertName),
-                SignaturePrivateKey   = ClientCertificateProvider.GetPrivateKey(serverCertName),
+                SignatureCertificate  = _serverCert,
+                SignaturePrivateKey   = _serverPrivateKey,
                 IncludeKeyInfo        = true,
                 SignatureAlgorithm    = SignatureAlgorithm.ECDSA256,
-                EncryptionCertificate = ClientCertificateProvider.GetCertificate(serverCertName),
-                EncryptionPrivateKey  = ClientCertificateProvider.GetPrivateKey(serverCertName)
+                EncryptionCertificate = _clientCert,
+                EncryptionPrivateKey  = null
+            };
+            var client509Configuration = new X509Configuration()
+            {
+                SignatureCertificate  = null, 
+                SignaturePrivateKey   = null,
+                IncludeKeyInfo        = true,
+                SignatureAlgorithm    = SignatureAlgorithm.ECDSA256,
+                EncryptionCertificate = null,
+                EncryptionPrivateKey  = _clientPrivateKey
             };
 
             var configuration = new SecurityTokenHandlerConfiguration
@@ -71,11 +87,11 @@ namespace OldMusicBox.EIH.Tests
                 Configuration = configuration
             };
 
-            responseFactory.X509Configuration = x509Configuration;
+            responseFactory.X509Configuration = server509Configuration;
             responseFactory.InResponseTo      = Guid.NewGuid().ToString();
             responseFactory.Issuer            = issuer;
 
-            artifactResponseFactory.X509Configuration = x509Configuration;
+            artifactResponseFactory.X509Configuration = server509Configuration;
             artifactResponseFactory.InResponseTo      = Guid.NewGuid().ToString();
             artifactResponseFactory.Issuer            = issuer;
 
@@ -83,7 +99,7 @@ namespace OldMusicBox.EIH.Tests
             encryptedAssertionFactory.Principal         = principal;
             encryptedAssertionFactory.IssuerDomain      = "issuer.domain.com";
             encryptedAssertionFactory.ConsumerDomain    = "consumer.domain.com";
-            encryptedAssertionFactory.X509Configuration = x509Configuration;
+            encryptedAssertionFactory.X509Configuration = server509Configuration;
 
             // build the crypted assertion
             responseFactory.EncryptedAssertions               = encryptedAssertionFactory.Build();
@@ -96,7 +112,7 @@ namespace OldMusicBox.EIH.Tests
             // assert
             Assert.IsNotNull(saml2Token);
 
-            saml2module.TryDecryptingEncryptedAssertions(saml2Token, x509Configuration);
+            saml2module.TryDecryptingEncryptedAssertions(saml2Token, client509Configuration);
             Assert.IsNotNull(saml2Token.Assertion);
 
             var identities = tokenHandler.ValidateToken(saml2Token);
@@ -105,6 +121,55 @@ namespace OldMusicBox.EIH.Tests
             var identity = identities[0];
             Assert.IsNotNull(identity);
             Assert.AreEqual(name, identity.FindFirst(ClaimTypes.NameIdentifier).Value);
+        }
+
+        /// <summary>
+        /// This test validates that computing the shared secret is symmetric:
+        /// * server public key/client private key
+        /// * client public key/server private key
+        /// give same shared secret
+        /// </summary>
+        /// <remarks>
+        /// https://stackoverflow.com/questions/52648023/what-makes-ecdh-rely-on-two-public-keys-alone
+        /// </remarks>
+        [TestMethod]
+        public void ECDHSymmetricSharedSecret()
+        {
+            // arrange
+            string serverCertName = "ExampleSigningCertificate";
+            string serverCertPwd = "123456";
+            string clientCertName = "ExampleEncryptionCertificate";
+            string clientCertPwd = "123456";
+
+            var _serverCert       = ClientCertificateProvider.GetCertificate(serverCertName, serverCertPwd);
+            var _serverPrivateKey = ClientCertificateProvider.GetPrivateKey(serverCertName, serverCertPwd);
+
+            var _clientCert       = ClientCertificateProvider.GetCertificate(clientCertName, clientCertPwd);
+            var _clientPrivateKey = ClientCertificateProvider.GetPrivateKey(clientCertName, clientCertPwd);
+
+            // act
+            var sharedSecret1 = this.ComputeSharedSecret(_serverCert, _clientPrivateKey);
+            var sharedSecret2 = this.ComputeSharedSecret(_clientCert, _serverPrivateKey);
+
+            // assert
+            CollectionAssert.AreEqual(sharedSecret1, sharedSecret2);
+        }
+
+        /// <summary>
+        /// Auxiliary function to compute the shared secret
+        /// </summary>
+        private byte[] ComputeSharedSecret(Org.BouncyCastle.X509.X509Certificate publicKey, Org.BouncyCastle.Crypto.AsymmetricKeyParameter privateKey)
+        {
+            var keyAgreement = Org.BouncyCastle.Security.AgreementUtilities.GetBasicAgreement("ECDH");
+            keyAgreement.Init(privateKey);
+
+            var parameters   = publicKey.GetPublicKey() as Org.BouncyCastle.Crypto.Parameters.ECPublicKeyParameters;
+            var ecPoint      = parameters.Q;
+            var ecPublicKey  = new Org.BouncyCastle.Crypto.Parameters.ECPublicKeyParameters(ecPoint, parameters.Parameters);
+
+            var sharedSecret = keyAgreement.CalculateAgreement(ecPublicKey).ToByteArrayUnsigned();
+
+            return sharedSecret;
         }
     }
 

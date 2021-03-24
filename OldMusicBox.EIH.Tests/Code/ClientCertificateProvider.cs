@@ -16,12 +16,12 @@ namespace OldMusicBox.EIH.Tests
     {
         private static Dictionary<string, Pkcs12Store> _clientStore = new Dictionary<string, Pkcs12Store>();
 
-        private static Pkcs12Store GetCertStore(string certName)
+        private static Pkcs12Store GetCertStore(string certName, string certPwd)
         {
             if (!_clientStore.ContainsKey(certName))
             {
                 var path = Directory.GetCurrentDirectory() + $@"/Resources/{certName}.p12";
-                var pwd = "12345";
+                var pwd  = certPwd;
 
                 _clientStore.Add(certName, new Pkcs12Store());
                 using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -33,16 +33,16 @@ namespace OldMusicBox.EIH.Tests
             return _clientStore[certName];
         }
 
-        public static X509Certificate GetCertificate(string certName)
+        public static X509Certificate GetCertificate(string certName, string certPwd)
         {
-            var alias = GetCertStore(certName).Aliases.Cast<string>().First();
-            return GetCertStore(certName).GetCertificate(alias).Certificate;
+            var alias = GetCertStore(certName, certPwd).Aliases.Cast<string>().First();
+            return GetCertStore(certName, certPwd).GetCertificate(alias).Certificate;
         }
 
-        public static AsymmetricKeyParameter GetPrivateKey(string certName)
+        public static AsymmetricKeyParameter GetPrivateKey(string certName, string certPwd)
         {
-            var alias = GetCertStore(certName).Aliases.Cast<string>().First();
-            return GetCertStore(certName).GetKey(alias).Key;
+            var alias = GetCertStore(certName, certPwd).Aliases.Cast<string>().First();
+            return GetCertStore(certName, certPwd).GetKey(alias).Key;
         }
     }
 }
