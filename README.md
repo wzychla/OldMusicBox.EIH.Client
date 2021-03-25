@@ -6,7 +6,7 @@ The client will support the Węzeł Krajowy SSO flow
 The implementation follows the 
 [official specification](https://mc.bip.gov.pl/interoperacyjnosc-mc/wezel-krajowy-dokumentacja-dotyczaca-integracji-z-wezlem-krajowym.html).
 
-## Current Version: 0.5
+## Current Version: 0.6
 
 Please refer to the change list and the road map below.
 
