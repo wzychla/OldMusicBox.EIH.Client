@@ -60,8 +60,14 @@ namespace OldMusicBox.EIH.Client.Model
 
     public class Attribute
     {
+        [XmlAttribute("FriendlyName")]
+        public string FriendlyName { get; set; }
+
         [XmlAttribute("Name")]
         public string Name { get; set; }
+
+        [XmlAttribute("NameFormat")]
+        public string NameFormat { get; set; }
 
         [XmlElement("AttributeValue", Namespace = Namespaces.ASSERTION)]
         public string[] AttributeValue { get; set; }
@@ -83,6 +89,8 @@ namespace OldMusicBox.EIH.Client.Model
     {
         [XmlElement("AuthnContextClassRef", Namespace = Namespaces.ASSERTION)]
         public string AuthnConextClassRef { get; set; }
+        [XmlElement("AuthenticatingAuthority", Namespace = Namespaces.ASSERTION)]
+        public string AuthenticatingAuthority { get; set; }
     }
 
     public class AuthnStatement

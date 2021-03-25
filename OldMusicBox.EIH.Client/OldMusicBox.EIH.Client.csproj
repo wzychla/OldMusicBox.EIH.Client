@@ -54,6 +54,7 @@
     <Compile Include="Constants\Namespaces.cs" />
     <Compile Include="Constants\ProtocolVersion.cs" />
     <Compile Include="Constants\StatusCodes.cs" />
+    <Compile Include="Constants\SubjectConfirmation.cs" />
     <Compile Include="Core\Saml2AuthenticationModule.cs" />
     <Compile Include="Core\Saml2Exception.cs" />
     <Compile Include="Core\Saml2SecurityToken.cs" />

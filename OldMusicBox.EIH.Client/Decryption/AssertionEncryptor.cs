@@ -22,6 +22,8 @@ namespace OldMusicBox.EIH.Client.Encryption
         const string KdfDigestAlgorithm = "http://www.w3.org/2001/04/xmlenc#sha256";
         const string KwAesAlgorithm     = "http://www.w3.org/2001/04/xmlenc#kw-aes256";
         const string ECNamedCurveURN    = "urn:oid:1.2.840.10045.3.1.7";
+        // default token lifespan
+        TimeSpan DefaultTokenLifeSpan   = new TimeSpan(0, 60, 0);
 
         public class RequiredParameters : AssertionCrypto.RequiredParametersBase
         {
@@ -64,8 +66,6 @@ namespace OldMusicBox.EIH.Client.Encryption
                                         Algorithm = "http://www.w3.org/2009/xmlenc11#ConcatKDF",
                                         ConcatKDFParams = new ConcatKDFParams()
                                         {
-                                            // AlgorithmID string is hardcoded 
-                                            // AlgorithmID = "0000002A687474703A2F2F7777772E77332E6F72672F323030312F30342F786D6C656E63236B772D616573323536",
                                             DigestMethod = new DigestMethod()
                                             {
                                                 Algorithm = KdfDigestAlgorithm 
@@ -108,87 +108,231 @@ namespace OldMusicBox.EIH.Client.Encryption
         /// </summary>
         public virtual EncryptedAssertion Encrypt(
             ClaimsPrincipal principal,
-            string IssuerDomain,
-            string ConsumerDomain,
+            string   assertionIssuer,
+            string   assertionConsumer,
+            string   inResponseTo,
+            string   sessionIndex,
+            TimeSpan tokenLifeSpan,
             Org.BouncyCastle.X509.X509Certificate serverPublicKey,
             AsymmetricKeyParameter                serverPrivateKey,
             Org.BouncyCastle.X509.X509Certificate clientPublicKey
             )
         {
-            var assertion          = this.CreateEmptyAssertion();
+            this.ValidatePrincipal(principal);
 
+            var assertion                  = this.CreateEmptyAssertion();
             var requiredParameters         = new RequiredParameters();
 
             requiredParameters.Principal   = principal;
 
             requiredParameters.AlgorithmID   = Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(Encoding.UTF8.GetBytes(KwAesAlgorithm));
-            requiredParameters.PartyUInfo    = Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(Encoding.UTF8.GetBytes(IssuerDomain));
-            requiredParameters.PartyVInfo    = Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(Encoding.UTF8.GetBytes(ConsumerDomain));
+            requiredParameters.PartyUInfo    = Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(Encoding.UTF8.GetBytes(assertionIssuer));
+            requiredParameters.PartyVInfo    = Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(Encoding.UTF8.GetBytes(assertionConsumer));
 
             requiredParameters.DigestMethodString  = KdfDigestAlgorithm.Substring(KdfDigestAlgorithm.IndexOf("#") + 1);
             requiredParameters.NamedCurveOid       = ECNamedCurveURN.Replace("urn:oid:", "");
             requiredParameters.KeyEncryptionMethod = KwAesAlgorithm;
 
             // fill-in initial data
-            this.CreateDerivedKeySection(assertion, requiredParameters);
+            this.WriteDerivedKeySection(assertion, requiredParameters);
 
             // compute kw-aes public key from the client's public certificate
-            ECPoint serverPoint = this.ComputePublicKeyPoint(serverPublicKey);
-            ECPoint clientPoint = this.ComputePublicKeyPoint(clientPublicKey);
+            ECPoint serverKeyPoint = this.ComputePublicKeyPoint(serverPublicKey);
+            ECPoint clientKeyPoint = this.ComputePublicKeyPoint(clientPublicKey);
 
-            this.WritePublicKeyPoint(assertion, serverPoint);
+            this.WritePublicKeyPoint(assertion, serverKeyPoint);
 
-            // encrypt session key
-            byte[] sessionKey = this.EncryptAndWriteSessionKey(assertion, requiredParameters, clientPoint, serverPrivateKey);
+            // encrypt and write session key
+            byte[] rawSessionKey;
+            byte[] sessionKey = this.EncryptSessionKey(requiredParameters, clientKeyPoint, serverPrivateKey, out rawSessionKey);
+            this.WriteSessionKey(assertion, rawSessionKey);
 
-            this.EncryptPrincipal(sessionKey, assertion, principal);
+            byte[] encryptedData = this.EncryptPrincipal(
+                sessionKey, 
+                principal, assertionIssuer, assertionConsumer,
+                inResponseTo, sessionIndex,
+                tokenLifeSpan );
+            this.WriteEncryptedPrincipal(assertion, encryptedData);
 
             return assertion;
         }
 
-        protected virtual void EncryptPrincipal(byte[] sessionKey, EncryptedAssertion assertion, ClaimsPrincipal principal)
+        #region Validation
+
+        /// <summary>
+        /// Check if principal has all required claims
+        /// </summary>
+        /// <param name="principal"></param>
+        protected virtual void ValidatePrincipal(ClaimsPrincipal principal)
         {
-            // key
-            var encryptedDataSection = assertion.EncryptedData;
+            if (principal == null) throw new ArgumentException("Principal must not be empty");
 
-            EncryptionService es = new EncryptionService(256, 128, 96);
-            string assertionText = this.CreateAssertionText(principal);
-            byte[] encryptedDoc  = es.EncryptWithKey(Encoding.UTF8.GetBytes(assertionText), sessionKey);
-
-            encryptedDataSection.CipherData.CipherValue.Text = Convert.ToBase64String(encryptedDoc);
+            foreach ( var claimType in 
+                new []
+                {
+                    ClaimTypes.Name,
+                    Eidas.FirstNameClaim,
+                    Eidas.FamilyNameClaim,
+                    Eidas.DateOfBirthClaim,
+                    Eidas.PersonIdentifierClaim,
+                })
+            {
+                if ( !principal.HasClaim( p => p.Type == claimType ) )
+                {
+                    throw new ArgumentException($"Principal is missing the ${claimType} claim");
+                }
+            }
         }
 
-        protected virtual string CreateAssertionText(ClaimsPrincipal principal)
+        #endregion
+
+        #region Computations
+
+        protected virtual byte[] EncryptPrincipal(
+            byte[]   sessionKey, 
+            ClaimsPrincipal principal,
+            string   assertionIssuer,
+            string   assertionConsumer,
+            string   inResponseTo,
+            string   sessionIndex,
+            TimeSpan tokenLifeSpan)
         {
+
+            EncryptionService es = new EncryptionService(256, 128, 96);
+            string assertionText = this.CreatePrincipalAssertionXml(
+                principal, 
+                assertionIssuer, assertionConsumer,
+                inResponseTo, sessionIndex, tokenLifeSpan
+                );
+            byte[] encryptedDoc  = es.EncryptWithKey(Encoding.UTF8.GetBytes(assertionText), sessionKey);
+
+            return encryptedDoc;
+        }
+
+        private ECPoint ComputePublicKeyPoint(
+            Org.BouncyCastle.X509.X509Certificate encryptionKey
+            )
+        {
+            // compute public key
+            ECPoint ecPoint = (encryptionKey.GetPublicKey() as ECPublicKeyParameters).Q;
+            ecPoint.Normalize();
+
+            return ecPoint;
+        }
+
+        protected virtual string CreatePrincipalAssertionXml(
+            ClaimsPrincipal principal,
+            string   assertionIssuer,
+            string   assertionConsumer,
+            string   inResponseTo,
+            string   sessionIndex,
+            TimeSpan tokenLifeSpan)
+        {
+            DateTime _now           = DateTime.UtcNow;
+            DateTime _tokenLifeSpan = _now.Add(tokenLifeSpan != null ? tokenLifeSpan : this.DefaultTokenLifeSpan);
+
             Assertion assertion = new Assertion()
             {
-                Subject = new Subject()
-                { 
+                ID           = $"_ID{Guid.NewGuid()}",
+                Version      = "2.0",
+                IssueInstant = _now,
+                Issuer       = assertionIssuer,
+                Subject      = new Subject()
+                {
                     NameID = new Model.NameID()
                     {
-                        Text = principal.Identity.Name
+                        Text   = principal.Identity.Name,
+                        Format = Constants.NameID.UNSPECIFIED
+                    },
+                    SubjectConfirmation = new Model.SubjectConfirmation()
+                    {
+                        Method = Client.Constants.SubjectConfirmation.BEARER,
+                        SubjectConfirmationData = new SubjectConfirmationData()
+                        {
+                            InResponseTo = inResponseTo,
+                            NotOnOrAfter = _tokenLifeSpan,
+                            Recipient    = assertionConsumer
+                        }
+                    },
+                },
+                Conditions = new Conditions()
+                {
+                    NotBefore           = _now,
+                    NotOnOrAfter        = _tokenLifeSpan,
+                    AudienceRestriction = new[]
+                    {
+                        new AudienceRestriction()
+                        {
+                            Audience = new []
+                            {
+                                assertionConsumer
+                            }
+                        }
+                    }
+                },
+                AuthnStatement = new AuthnStatement()
+                {
+                    AuthnInstant = _now,
+                    SessionIndex = sessionIndex,
+                    AuthnContext = new AuthnContext()
+                    {
+                        AuthnConextClassRef     = Eidas.LOA_SUBSTANTIAL,
+                        AuthenticatingAuthority = assertionIssuer
                     }
                 },
                 AttributeStatement = new AttributeStatement()
                 {
-                    /*
                     Attributes = new[]
                     {
                         new Model.Attribute()
                         {
-                            Name           = ClaimTypes.Name,
-                            AttributeValue = new [] { principal.FindFirst.. }
+                            FriendlyName   = Eidas.FamilyName,
+                            Name           = Eidas.FamilyNameClaim,
+                            NameFormat     = Constants.NameID.URI,
+                            AttributeValue = new []
+                            {
+                                principal.FindFirst( c => c.Type == Eidas.FamilyNameClaim ).Value
+                            }
+                        },
+                        new Model.Attribute()
+                        {
+                            FriendlyName   = Eidas.DateOfBirth,
+                            Name           = Eidas.DateOfBirthClaim,
+                            NameFormat     = Constants.NameID.URI,
+                            AttributeValue = new []
+                            {
+                                principal.FindFirst( c => c.Type == Eidas.DateOfBirthClaim ).Value
+                            }
+                        },
+                        new Model.Attribute()
+                        {
+                            FriendlyName   = Eidas.FirstName,
+                            Name           = Eidas.FirstNameClaim,
+                            NameFormat     = Constants.NameID.URI,
+                            AttributeValue = new []
+                            {
+                                principal.FindFirst( c => c.Type == Eidas.FirstNameClaim ).Value
+                            }
+                        },
+                        new Model.Attribute()
+                        {
+                            FriendlyName   = Eidas.PersonIdentifier,
+                            Name           = Eidas.PersonIdentifierClaim,
+                            NameFormat     = Constants.NameID.URI,
+                            AttributeValue = new []
+                            {
+                                principal.FindFirst( c => c.Type == Eidas.PersonIdentifierClaim ).Value
+                            }
                         }
                     }
-                    */
                 }
             };
 
             StringBuilder sb = new StringBuilder();
             using (StringWriter writer = new StringWriter(sb))
             {
-                var xmlWriterSettings                = new XmlWriterSettings();
-                xmlWriterSettings.Encoding           = Encoding.UTF8;
+                var xmlWriterSettings = new XmlWriterSettings();
+                xmlWriterSettings.Encoding = Encoding.UTF8;
                 xmlWriterSettings.OmitXmlDeclaration = true;
 
                 using (var xmlWriter = XmlWriter.Create(writer, xmlWriterSettings))
@@ -202,59 +346,37 @@ namespace OldMusicBox.EIH.Client.Encryption
             return sb.ToString();
         }
 
-        protected virtual byte[] EncryptAndWriteSessionKey(
+        #endregion
+
+        #region Structure
+
+        protected virtual void WriteEncryptedPrincipal(
             EncryptedAssertion assertion,
-            RequiredParameters requiredParameters,
-            ECPoint publicKey,
-            AsymmetricKeyParameter privateKey
+            byte[] encryptedData
             )
         {
             // key
-            var encryptedKeySection = assertion.EncryptedData.KeyInfo.EncryptedKey;
+            var encryptedDataSection = assertion.EncryptedData;
 
-            // ECC parameters
-            ECDomainParameters ecNamedCurveParameterSpec = GetCurveParameters(requiredParameters.NamedCurveOid);
-
-            // klucz publiczny efemeryczny nadawcy
-            AsymmetricKeyParameter ecPublicKey = new ECPublicKeyParameters(publicKey, ecNamedCurveParameterSpec);
-
-            // Wykonanie operacji KeyAgreement
-            IBasicAgreement keyAgreement = AgreementUtilities.GetBasicAgreement("ECDH");
-            keyAgreement.Init(privateKey);
-
-            // zrzucenie efektu key agreement do tablicy
-            byte[] sharedSecret  = keyAgreement.CalculateAgreement(ecPublicKey).ToByteArrayUnsigned();
-            IDigest digestMethod = DigestUtilities.GetDigest(requiredParameters.DigestMethodString);
-
-            // wykonanie funkcji KDF
-            byte[] wrappedKeyBytes = this.DeriveKey(requiredParameters, sharedSecret, digestMethod);
-
-            // odszyfrowanie klucza ktorym nadawca zaszyfrowal dane
-            KeyParameter keyParameter = ParameterUtilities.CreateKeyParameter("AES", wrappedKeyBytes);
-            byte[] sessionKey         = Org.BouncyCastle.Crypto.Xml.EncryptedXml.EncryptKey(wrappedKeyBytes, keyParameter);
-
-            encryptedKeySection.CipherData.CipherValue.Text = Convert.ToBase64String(sessionKey);
-
-            return wrappedKeyBytes;
-            //return sessionKey;
+            encryptedDataSection.CipherData.CipherValue.Text = Convert.ToBase64String(encryptedData);
         }
 
-        protected virtual void CreateDerivedKeySection(
+        protected virtual void WriteDerivedKeySection(
             EncryptedAssertion assertion,
             RequiredParameters requiredParameters
-            )
+        )
         {
             // key
             var encryptedKey = assertion.EncryptedData.KeyInfo.EncryptedKey;
 
             // fill the information in the XML
-            var concatKDFParams         = encryptedKey.KeyInfo.AgreementMethod.KeyDerivationMethod.ConcatKDFParams;
+            var concatKDFParams = encryptedKey.KeyInfo.AgreementMethod.KeyDerivationMethod.ConcatKDFParams;
             concatKDFParams.AlgorithmID = requiredParameters.AlgorithmID;
-            concatKDFParams.PartyUInfo  = requiredParameters.PartyUInfo;
-            concatKDFParams.PartyVInfo  = requiredParameters.PartyVInfo;
+            concatKDFParams.PartyUInfo = requiredParameters.PartyUInfo;
+            concatKDFParams.PartyVInfo = requiredParameters.PartyVInfo;
         }
 
-        private void WritePublicKeyPoint(
+        protected virtual void WritePublicKeyPoint(
             EncryptedAssertion assertion,
             ECPoint ecPoint)
         {
@@ -265,15 +387,44 @@ namespace OldMusicBox.EIH.Client.Encryption
             encryptedKey.KeyInfo.AgreementMethod.OriginatorKeyInfo.KeyValue.ECKeyValue.PublicKey.Text = Convert.ToBase64String(ecPoint.GetEncoded());
         }
 
-        private ECPoint ComputePublicKeyPoint(
-            Org.BouncyCastle.X509.X509Certificate encryptionKey
+        protected virtual void WriteSessionKey(
+            EncryptedAssertion assertion,
+            byte[] sessionKey
             )
         {
-            // compute public key
-            ECPoint ecPoint = (encryptionKey.GetPublicKey() as ECPublicKeyParameters).Q;
-            ecPoint.Normalize();
+            // key
+            var encryptedKeySection                         = assertion.EncryptedData.KeyInfo.EncryptedKey;
+            encryptedKeySection.CipherData.CipherValue.Text = Convert.ToBase64String(sessionKey);
+        }
 
-            return ecPoint;
+        #endregion
+
+        protected virtual byte[] EncryptSessionKey(
+            RequiredParameters     requiredParameters,
+            ECPoint                clientPublicKey,
+            AsymmetricKeyParameter serverPrivateKey,
+            out byte[]             rawSessionKey
+            )
+        {
+            // clients public key ECC parameters
+            ECDomainParameters ecNamedCurveParameterSpec = GetCurveParameters(requiredParameters.NamedCurveOid);
+            AsymmetricKeyParameter ecPublicKey = new ECPublicKeyParameters(clientPublicKey, ecNamedCurveParameterSpec);
+
+            // KeyAgreement
+            IBasicAgreement keyAgreement = AgreementUtilities.GetBasicAgreement("ECDH");
+            keyAgreement.Init(serverPrivateKey);
+
+            byte[] sharedSecret  = keyAgreement.CalculateAgreement(ecPublicKey).ToByteArrayUnsigned();
+            IDigest digestMethod = DigestUtilities.GetDigest(requiredParameters.DigestMethodString);
+
+            // executing the KDF
+            byte[] wrappedKeyBytes = this.DeriveKey(requiredParameters, sharedSecret, digestMethod);
+
+            // encrypting the key
+            KeyParameter keyParameter = ParameterUtilities.CreateKeyParameter("AES", wrappedKeyBytes);
+            rawSessionKey             = Org.BouncyCastle.Crypto.Xml.EncryptedXml.EncryptKey(wrappedKeyBytes, keyParameter);
+
+            return wrappedKeyBytes;
         }
     }
 }

@@ -30,8 +30,12 @@ namespace OldMusicBox.EIH.Tests
             string clientCertName = "ExampleEncryptionCertificate";
             string clientCertPwd  = "123456";
 
-            string name   = "foo";
-            string issuer = "foo.bar.qux";
+            string name             = "foo";
+            string firstName        = "joe";
+            string familyName       = "doe";
+            string dateOfBirth      = "2000-01-01T00:00:00";
+            string personIdentifier = "12345678901";
+            string issuer           = "foo.bar.qux";
 
             Org.BouncyCastle.X509.X509Certificate _serverCert                = ClientCertificateProvider.GetCertificate(serverCertName, serverCertPwd);
             Org.BouncyCastle.Crypto.AsymmetricKeyParameter _serverPrivateKey = ClientCertificateProvider.GetPrivateKey(serverCertName, serverCertPwd);
@@ -46,8 +50,10 @@ namespace OldMusicBox.EIH.Tests
                         new[]
                         {
                             new Claim(ClaimTypes.Name, name),
-                            new Claim(ClaimTypes.GivenName, "joe"),
-                            new Claim(ClaimTypes.Surname, "doe")
+                            new Claim(Client.Constants.Eidas.FirstNameClaim,        firstName),
+                            new Claim(Client.Constants.Eidas.FamilyNameClaim,       familyName),
+                            new Claim(Client.Constants.Eidas.DateOfBirthClaim,      dateOfBirth),
+                            new Claim(Client.Constants.Eidas.PersonIdentifierClaim, personIdentifier),
                         }
                     ));
 
@@ -97,10 +103,10 @@ namespace OldMusicBox.EIH.Tests
             artifactResponseFactory.Issuer            = issuer;
 
             // data to be encrypted
-            encryptedAssertionFactory.Principal         = principal;
-            encryptedAssertionFactory.IssuerDomain      = "issuer.domain.com";
-            encryptedAssertionFactory.ConsumerDomain    = "consumer.domain.com";
-            encryptedAssertionFactory.X509Configuration = server509Configuration;
+            encryptedAssertionFactory.Principal          = principal;
+            encryptedAssertionFactory.AssertionIssuer    = "issuer.domain.com";
+            encryptedAssertionFactory.AssertionConsumer  = "consumer.domain.com";
+            encryptedAssertionFactory.X509Configuration  = server509Configuration;
 
             // build the crypted assertion
             responseFactory.EncryptedAssertions               = encryptedAssertionFactory.Build();
@@ -121,7 +127,13 @@ namespace OldMusicBox.EIH.Tests
             Assert.IsTrue(identities.Count > 0);
             var identity = identities[0];
             Assert.IsNotNull(identity);
+
+            // claims
             Assert.AreEqual(name, identity.FindFirst(ClaimTypes.NameIdentifier).Value);
+            Assert.AreEqual(familyName, identity.FindFirst(Client.Constants.Eidas.FamilyNameClaim).Value);
+            Assert.AreEqual(firstName, identity.FindFirst(Client.Constants.Eidas.FirstNameClaim).Value);
+            Assert.AreEqual(dateOfBirth, identity.FindFirst(Client.Constants.Eidas.DateOfBirthClaim).Value);
+            Assert.AreEqual(personIdentifier, identity.FindFirst(Client.Constants.Eidas.PersonIdentifierClaim).Value);
         }
 
         /// <summary>

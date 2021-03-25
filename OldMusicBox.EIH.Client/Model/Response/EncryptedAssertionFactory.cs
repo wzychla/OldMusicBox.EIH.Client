@@ -21,12 +21,27 @@ namespace OldMusicBox.EIH.Client.Model
         /// <summary>
         /// This will go into PartyUInfo
         /// </summary>
-        public string IssuerDomain { get; set; }
+        public string AssertionIssuer { get; set; }
 
         /// <summary>
         /// This will go into PartyVInfo
         /// </summary>
-        public string ConsumerDomain { get; set; }
+        public string AssertionConsumer { get; set; }
+
+        /// <summary>
+        /// ID of client's request
+        /// </summary>
+        public string InResponseTo { get; set; }
+
+        /// <summary>
+        /// SessionIndex
+        /// </summary>
+        public string SessionIndex { get; set; }
+
+        /// <summary>
+        /// Token lifespan is added to current date
+        /// </summary>
+        public TimeSpan TokenLifeSpan { get; set; }
 
         public X509Configuration X509Configuration { get; set; }
 
@@ -38,8 +53,11 @@ namespace OldMusicBox.EIH.Client.Model
             var encryptor = new AssertionEncryptor();
             var assertion = encryptor.Encrypt(
                 this.Principal,
-                this.IssuerDomain,
-                this.ConsumerDomain,
+                this.AssertionIssuer,
+                this.AssertionConsumer,
+                this.InResponseTo,
+                this.SessionIndex,
+                this.TokenLifeSpan,
                 this.X509Configuration.EncryptionCertificate, 
                 this.X509Configuration.EncryptionPrivateKey,
                 this.X509Configuration.EncryptionCoCertificate

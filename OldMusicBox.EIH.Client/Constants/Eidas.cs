@@ -8,7 +8,7 @@ namespace OldMusicBox.EIH.Client.Constants
 {
     public class Eidas
     {
-        public const string FamilyName = "FamilyName";
+        public const string FamilyName      = "FamilyName";
         public const string FamilyNameClaim = "http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName";
 
         public const string FirstName      = "FirstName";
@@ -17,7 +17,7 @@ namespace OldMusicBox.EIH.Client.Constants
         public const string DateOfBirth      = "DateOfBirth";
         public const string DateOfBirthClaim = "http://eidas.europa.eu/attributes/naturalperson/DateOfBirth";
 
-        public const string PersonIdentifier = "PersonIdentifier";
+        public const string PersonIdentifier      = "PersonIdentifier";
         public const string PersonIdentifierClaim = "http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier";
 
         public const string LOA_SUBSTANTIAL = "http://eidas.europa.eu/LoA/substantial";

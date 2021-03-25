@@ -24,6 +24,11 @@ namespace OldMusicBox.EIH.Client.Constants
         public const string PROTOCOL = "urn:oasis:names:tc:SAML:2.0:protocol";
 
         /// <summary>
+        /// Schema instance
+        /// </summary>
+        public const string XMLSCHEMAINSTANCE = "http://www.w3.org/2001/XMLSchema-instance";
+
+        /// <summary>
         /// EIDAS
         /// </summary>
         public const string EIDAS = "http://eidas.europa.eu/saml-extensions";
@@ -39,6 +44,11 @@ namespace OldMusicBox.EIH.Client.Constants
         /// </summary>
         public const string XMLDSIG   = "http://www.w3.org/2000/09/xmldsig#";
         public const string XMLDSIG11 = "http://www.w3.org/2009/xmldsig11#";
+
+        /// <summary>
+        /// Natural person
+        /// </summary>
+        public const string NATURALPERSON = "http://eidas.europa.eu/attributes/naturalperson";
 
         /// <summary>
         /// In order to conform to common SAML namespacing, the serializer
