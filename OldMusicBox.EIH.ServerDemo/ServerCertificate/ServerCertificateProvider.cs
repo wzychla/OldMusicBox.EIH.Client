@@ -17,6 +17,8 @@ namespace OldMusicBox.EIH.ServerDemo
     /// </summary>
     public class ServerCertificateProvider
     {
+        #region Signatures
+
         private static Pkcs12Store _clientSigStore;
 
         private static Pkcs12Store GetSigCertStore()
@@ -46,6 +48,10 @@ namespace OldMusicBox.EIH.ServerDemo
             return GetSigCertStore().GetKey(alias).Key;
         }
 
+        #endregion
+
+        #region Encryption
+
         private static Pkcs12Store _clientEncStore;
 
         private static Pkcs12Store GetEncCertStore()
@@ -74,5 +80,29 @@ namespace OldMusicBox.EIH.ServerDemo
             var alias = GetEncCertStore().Aliases.Cast<string>().First();
             return GetEncCertStore().GetKey(alias).Key;
         }
+
+        #endregion
+
+        #region Client public
+
+        private static AsymmetricKeyParameter _clientPubStore;
+
+        public static AsymmetricKeyParameter GetClientCertificate()
+        {
+            if (_clientPubStore == null)
+            {
+                var path = HostingEnvironment.MapPath("~/ServerCertificate/clientencryption.pem");
+                using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var tr = new StreamReader(fs))
+                {
+                    var pemReader = new Org.BouncyCastle.OpenSsl.PemReader(tr);
+                    _clientPubStore = (AsymmetricKeyParameter)pemReader.ReadObject();
+                }
+            }
+
+            return _clientPubStore;
+        }
+
+        #endregion
     }
 }

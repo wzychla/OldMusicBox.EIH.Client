@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Security.Claims;
 using System.Web;
 using System.Web.Mvc;
 using System.Xml;
@@ -51,12 +52,13 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
             // this is optional
             var x509Configuration = new X509Configuration()
             {
-                SignatureCertificate  = ServerCertificateProvider.GetSigCertificate(),
-                SignaturePrivateKey   = ServerCertificateProvider.GetSigPrivateKey(),
-                IncludeKeyInfo        = true,
-                SignatureAlgorithm    = SignatureAlgorithm.ECDSA256,
-                EncryptionCertificate = ServerCertificateProvider.GetEncCertificate(),
-                EncryptionPrivateKey  = ServerCertificateProvider.GetEncPrivateKey()
+                SignatureCertificate    = ServerCertificateProvider.GetSigCertificate(),
+                SignaturePrivateKey     = ServerCertificateProvider.GetSigPrivateKey(),
+                IncludeKeyInfo          = true,
+                SignatureAlgorithm      = SignatureAlgorithm.ECDSA256,
+                EncryptionCertificate   = ServerCertificateProvider.GetEncCertificate(),
+                EncryptionPrivateKey    = ServerCertificateProvider.GetEncPrivateKey(),
+                EncryptionCoCertificate = ServerCertificateProvider.GetClientCertificate()
             };
 
             var issuer               = ConfigurationManager.AppSettings["Issuer"];
@@ -73,6 +75,12 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
             artifactResponseFactory.InResponseTo      = artifactResolve.ID;
             artifactResponseFactory.Issuer            = issuer;
 
+            encryptedAssertionFactory.Principal         = new SessionArtifactRepository().QuerySessionPrincipal(artifactResolve.Artifact);
+            encryptedAssertionFactory.AssertionIssuer   = ConfigurationManager.AppSettings["Issuer"];
+            encryptedAssertionFactory.AssertionConsumer = artifactResolve.Issuer;
+            encryptedAssertionFactory.SessionIndex      = artifactResolve.ID;
+            encryptedAssertionFactory.X509Configuration = x509Configuration;
+
             responseFactory.EncryptedAssertions               = encryptedAssertionFactory.Build();
             artifactResponseFactory.ArtifactResponse.Response = responseFactory.Build();
 
@@ -81,9 +89,12 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
             return Content(artifactResponse, "text/xml");
         }
 
+        /// <summary>
+        /// Not yet
+        /// </summary>
         public ActionResult SingleLogoutService()
         {
-            return new EmptyResult();
+            throw new NotImplementedException();
         }
     }
 }

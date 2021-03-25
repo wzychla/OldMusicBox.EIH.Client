@@ -70,7 +70,7 @@ namespace OldMusicBox.EIH.Tests
                 SignatureAlgorithm      = SignatureAlgorithm.ECDSA256,
                 EncryptionCertificate   = _serverCert,
                 EncryptionPrivateKey    = _serverPrivateKey,
-                EncryptionCoCertificate = _clientCert
+                EncryptionCoCertificate = _clientCert.GetPublicKey()
             };
             var client509Configuration = new X509Configuration()
             {

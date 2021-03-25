@@ -16,10 +16,11 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
         {
             var model       = new AccountLogonModel();
             
-            model.Username  = "username";
-            model.GivenName = "Kowalski";
-            model.Surname   = "Jan";
-            model.PESEL     = "11111111111";
+            model.Username    = "username";
+            model.GivenName   = "Kowalski";
+            model.Surname     = "Jan";
+            model.PESEL       = "11111111111";
+            model.DateOfBirth = DateTime.Now;
 
             return View(model);
         }
@@ -32,7 +33,13 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
                 // create a fresh guid for a session index
                 string sessionIndex     = "s" + Guid.NewGuid().ToString();
                 // save principal in a cookie
-                var principal = new PrincipalManager().CreateSessionPrincipal(model.Username, model.PESEL, model.GivenName, model.Surname, sessionIndex);
+                var principal = new PrincipalManager().CreateSessionPrincipal(
+                    model.Username, 
+                    model.PESEL, 
+                    model.GivenName, 
+                    model.Surname, 
+                    model.DateOfBirth,
+                    sessionIndex);
                 // also save it so that when the artifact resolution call arrives, the session is there
                 new SessionArtifactRepository().StoreSessionPrincipal(sessionIndex, principal);
 

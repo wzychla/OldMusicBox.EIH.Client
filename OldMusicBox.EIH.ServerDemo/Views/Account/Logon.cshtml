@@ -30,6 +30,11 @@
             @Html.ValidationMessageFor(m => m.PESEL)
         </div>
         <div>
+            <label for="DateOfBirth">Date of birth:</label>
+            @Html.TextBoxFor(m => m.DateOfBirth, new { type="date" })
+            @Html.ValidationMessageFor(m => m.DateOfBirth)
+        </div>
+        <div>
             <button>Logon</button>
         </div>
         <div id="message">

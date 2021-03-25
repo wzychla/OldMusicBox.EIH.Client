@@ -115,7 +115,7 @@ namespace OldMusicBox.EIH.Client.Encryption
             TimeSpan tokenLifeSpan,
             Org.BouncyCastle.X509.X509Certificate serverPublicKey,
             AsymmetricKeyParameter                serverPrivateKey,
-            Org.BouncyCastle.X509.X509Certificate clientPublicKey
+            AsymmetricKeyParameter                clientPublicKey
             )
         {
             this.ValidatePrincipal(principal);
@@ -215,6 +215,17 @@ namespace OldMusicBox.EIH.Client.Encryption
         {
             // compute public key
             ECPoint ecPoint = (encryptionKey.GetPublicKey() as ECPublicKeyParameters).Q;
+            ecPoint.Normalize();
+
+            return ecPoint;
+        }
+
+        private ECPoint ComputePublicKeyPoint(
+            Org.BouncyCastle.Crypto.AsymmetricKeyParameter encryptionKey
+        )
+        {
+            // compute public key
+            ECPoint ecPoint = (encryptionKey as ECPublicKeyParameters).Q;
             ecPoint.Normalize();
 
             return ecPoint;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OldMusicBox.EIH.Client.Constants;
+using System;
 using System.Collections.Generic;
 using System.IdentityModel.Services;
 using System.IdentityModel.Tokens;
@@ -33,6 +34,7 @@ namespace OldMusicBox.EIH.ServerDemo
             string pesel,
             string givenName,
             string surname,
+            DateTime dateOfBirth,
             string sessionIndex)
         {
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException();
@@ -40,9 +42,10 @@ namespace OldMusicBox.EIH.ServerDemo
             var identity = new ClaimsIdentity("federated");
 
             identity.AddClaim(new Claim(ClaimTypes.Name, name));
-            identity.AddClaim(new Claim(ClaimTypes.Surname, surname));
-            identity.AddClaim(new Claim(ClaimTypes.GivenName, givenName));
-            identity.AddClaim(new Claim(PESEL_CLAIM, pesel));
+            identity.AddClaim(new Claim(Eidas.FamilyNameClaim, surname));
+            identity.AddClaim(new Claim(Eidas.FirstNameClaim, givenName));
+            identity.AddClaim(new Claim(Eidas.PersonIdentifierClaim, pesel));
+            identity.AddClaim(new Claim(Eidas.DateOfBirthClaim, dateOfBirth.ToString("d")));
             identity.AddClaim(new Claim(SESSION_INDEX, sessionIndex));
 
             var principal = new ClaimsPrincipal(identity);

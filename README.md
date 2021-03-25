@@ -15,7 +15,7 @@ Please refer to the change list and the road map below.
 |  Feature  | Status |
 |----|:---:|
 |Client demo|**yes**|
-|Server demo|work in progress|
+|Server demo|**yes**|
 |NuGet|**yes**|
 |Single Sign On|**yes**|
 |Single Log Out|**yes**|
@@ -53,7 +53,36 @@ was then to rewrite the Java code to .NET - it was fairly
 straightforward to rewrite the BouncyCastle code, however
 it was not that easy to rewrite the **org.apache.xml.security.encryption.XMLCipher** code. 
 
+## Repository content
+
+### OldMusicBox.EIH.Client
+
+This is the client/server library that lets you develop your own Węzeł Krajowy clients as well as stub Węzeł Krajowy servers.
+
+### OldMusicBox.EIH.Demo
+
+This is the demo **client application**. It performs SAML2 Artifact binding flow against the Węzeł Krajowy. It demonstrates key steps that have to be implemented in a client app:
+
+* it creates the `AuthnRequest` and sends it to the server
+* it parses the `AuthnResponse` and extracts the **artifact**
+* it creates the `ArtifactResolve` and sends it to the server
+* it parses the `ArtifactResponse` and decrypts the encrypted assertion
+
+### OldMusicBox.EIH.ServerDemo
+
+This is the demo **server application**. It follows the server implementation close enough to let you test your own client implementations. In particular:
+
+* it reads client's `AuthnRequest` and creates `AuthnResponse`
+* it reads client's `ArtifactResolve` and creates `ArtifactResponse` with encrypted assertion
+
+| **Important!** |
+|----------------|
+|Server demo application is very useful. In particular, you can use it to quickly validate any client implementation, including implementations developed in other technology stacks (node.js, Java, PHP). If you plan to integrate with Węzeł Krajowy, consider this server demo as a preliminary Węzeł Krajowy test enviroment. |
+
 ## Version History:
+
+* 0.6 (2021-03-25)
+    * server demo works
 
 * 0.51 (2021-03-08)
     * server demo slowly gets into shape

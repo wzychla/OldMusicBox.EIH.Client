@@ -18,6 +18,9 @@ namespace OldMusicBox.EIH.ServerDemo.Models
         public string GivenName { get; set; }
 
         [Required]
+        public DateTime DateOfBirth { get; set; }
+
+        [Required]
         public string PESEL { get; set; }
     }
 }
