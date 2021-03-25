@@ -58,12 +58,13 @@ namespace OldMusicBox.EIH.Tests
 
             var server509Configuration = new X509Configuration()
             {
-                SignatureCertificate  = _serverCert,
-                SignaturePrivateKey   = _serverPrivateKey,
-                IncludeKeyInfo        = true,
-                SignatureAlgorithm    = SignatureAlgorithm.ECDSA256,
-                EncryptionCertificate = _clientCert,
-                EncryptionPrivateKey  = null
+                SignatureCertificate    = _serverCert,
+                SignaturePrivateKey     = _serverPrivateKey,
+                IncludeKeyInfo          = true,
+                SignatureAlgorithm      = SignatureAlgorithm.ECDSA256,
+                EncryptionCertificate   = _serverCert,
+                EncryptionPrivateKey    = _serverPrivateKey,
+                EncryptionCoCertificate = _clientCert
             };
             var client509Configuration = new X509Configuration()
             {

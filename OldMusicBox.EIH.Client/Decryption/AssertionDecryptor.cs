@@ -78,7 +78,7 @@ namespace OldMusicBox.EIH.Client.Decryption
         /// <summary>
         /// Public decrypt method
         /// </summary>
-        public Assertion Decrypt(
+        public virtual Assertion Decrypt(
             Saml2SecurityToken token,
             AsymmetricKeyParameter privateKey)
         {
@@ -125,7 +125,7 @@ namespace OldMusicBox.EIH.Client.Decryption
             }
         }
 
-        private RequiredParameters ExtractRequiredParameters(Saml2SecurityToken token)
+        protected virtual RequiredParameters ExtractRequiredParameters(Saml2SecurityToken token)
         {
             var returnedValue = new RequiredParameters();
 

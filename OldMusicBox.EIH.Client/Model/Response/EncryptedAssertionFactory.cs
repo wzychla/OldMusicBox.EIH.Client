@@ -41,7 +41,9 @@ namespace OldMusicBox.EIH.Client.Model
                 this.IssuerDomain,
                 this.ConsumerDomain,
                 this.X509Configuration.EncryptionCertificate, 
-                this.X509Configuration.EncryptionPrivateKey);
+                this.X509Configuration.EncryptionPrivateKey,
+                this.X509Configuration.EncryptionCoCertificate
+            );
 
             return new[] 
             { 

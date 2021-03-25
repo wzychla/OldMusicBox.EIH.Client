@@ -30,6 +30,10 @@ namespace OldMusicBox.EIH.Client.Model
         /// Enc certificate
         /// </summary>
         public Org.BouncyCastle.X509.X509Certificate EncryptionCertificate { get; set; }
+        /// <summary>
+        /// Encryption co-certificate (client certificate when negotiating the shared secret)
+        /// </summary>
+        public Org.BouncyCastle.X509.X509Certificate EncryptionCoCertificate { get; set; }
 
         public Org.BouncyCastle.Crypto.AsymmetricKeyParameter EncryptionPrivateKey { get; set; }
     }

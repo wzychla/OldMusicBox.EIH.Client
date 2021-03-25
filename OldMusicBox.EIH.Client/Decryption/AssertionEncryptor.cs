@@ -106,12 +106,13 @@ namespace OldMusicBox.EIH.Client.Encryption
         /// <summary>
         /// Public encrypt method
         /// </summary>
-        public EncryptedAssertion Encrypt(
+        public virtual EncryptedAssertion Encrypt(
             ClaimsPrincipal principal,
             string IssuerDomain,
             string ConsumerDomain,
-            Org.BouncyCastle.X509.X509Certificate encryptionKey,
-            AsymmetricKeyParameter privateKey
+            Org.BouncyCastle.X509.X509Certificate serverPublicKey,
+            AsymmetricKeyParameter                serverPrivateKey,
+            Org.BouncyCastle.X509.X509Certificate clientPublicKey
             )
         {
             var assertion          = this.CreateEmptyAssertion();
@@ -132,17 +133,20 @@ namespace OldMusicBox.EIH.Client.Encryption
             this.CreateDerivedKeySection(assertion, requiredParameters);
 
             // compute kw-aes public key from the client's public certificate
-            ECPoint publicSessionKey = this.CreatePublicKeyBytes(assertion, requiredParameters, encryptionKey);
+            ECPoint serverPoint = this.ComputePublicKeyPoint(serverPublicKey);
+            ECPoint clientPoint = this.ComputePublicKeyPoint(clientPublicKey);
+
+            this.WritePublicKeyPoint(assertion, serverPoint);
 
             // encrypt session key
-            byte[] sessionKey = this.EncryptSessionKey(publicSessionKey, assertion, requiredParameters, privateKey);
+            byte[] sessionKey = this.EncryptAndWriteSessionKey(assertion, requiredParameters, clientPoint, serverPrivateKey);
 
             this.EncryptPrincipal(sessionKey, assertion, principal);
 
             return assertion;
         }
 
-        private void EncryptPrincipal(byte[] sessionKey, EncryptedAssertion assertion, ClaimsPrincipal principal)
+        protected virtual void EncryptPrincipal(byte[] sessionKey, EncryptedAssertion assertion, ClaimsPrincipal principal)
         {
             // key
             var encryptedDataSection = assertion.EncryptedData;
@@ -154,7 +158,7 @@ namespace OldMusicBox.EIH.Client.Encryption
             encryptedDataSection.CipherData.CipherValue.Text = Convert.ToBase64String(encryptedDoc);
         }
 
-        private string CreateAssertionText(ClaimsPrincipal principal)
+        protected virtual string CreateAssertionText(ClaimsPrincipal principal)
         {
             Assertion assertion = new Assertion()
             {
@@ -198,10 +202,10 @@ namespace OldMusicBox.EIH.Client.Encryption
             return sb.ToString();
         }
 
-        private byte[] EncryptSessionKey(
-            ECPoint publicKey,
+        protected virtual byte[] EncryptAndWriteSessionKey(
             EncryptedAssertion assertion,
             RequiredParameters requiredParameters,
+            ECPoint publicKey,
             AsymmetricKeyParameter privateKey
             )
         {
@@ -235,7 +239,7 @@ namespace OldMusicBox.EIH.Client.Encryption
             //return sessionKey;
         }
 
-        private void CreateDerivedKeySection(
+        protected virtual void CreateDerivedKeySection(
             EncryptedAssertion assertion,
             RequiredParameters requiredParameters
             )
@@ -250,28 +254,24 @@ namespace OldMusicBox.EIH.Client.Encryption
             concatKDFParams.PartyVInfo  = requiredParameters.PartyVInfo;
         }
 
-        private ECPoint CreatePublicKeyBytes(
+        private void WritePublicKeyPoint(
             EncryptedAssertion assertion,
-            RequiredParameters requiredParameters,
-            Org.BouncyCastle.X509.X509Certificate encryptionKey
-            )
+            ECPoint ecPoint)
         {
             // key
             var encryptedKey = assertion.EncryptedData.KeyInfo.EncryptedKey;
 
-            // compute public key
-            //ECDomainParameters ecNamedCurveParameterSpec = GetCurveParameters(requiredParameters.NamedCurveOid);
-            //ECCurve curve                                = ecNamedCurveParameterSpec.Curve;
-
-            ECPoint ecPoint = (encryptionKey.GetPublicKey() as ECPublicKeyParameters).Q;
-            //ECPoint q = (encryptionKey.GetPublicKey() as ECPublicKeyParameters).Q;
-            //q.Normalize();
-
-            //ECPoint ecPoint = curve.CreatePoint(q.XCoord.ToBigInteger(), q.YCoord.ToBigInteger());
-            //ecPoint.Normalize();
-
             // fill
             encryptedKey.KeyInfo.AgreementMethod.OriginatorKeyInfo.KeyValue.ECKeyValue.PublicKey.Text = Convert.ToBase64String(ecPoint.GetEncoded());
+        }
+
+        private ECPoint ComputePublicKeyPoint(
+            Org.BouncyCastle.X509.X509Certificate encryptionKey
+            )
+        {
+            // compute public key
+            ECPoint ecPoint = (encryptionKey.GetPublicKey() as ECPublicKeyParameters).Q;
+            ecPoint.Normalize();
 
             return ecPoint;
         }
