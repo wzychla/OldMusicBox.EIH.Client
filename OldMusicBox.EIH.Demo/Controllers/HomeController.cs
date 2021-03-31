@@ -4,6 +4,7 @@ using OldMusicBox.EIH.Client.Model.Logout;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IdentityModel.Services;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -44,28 +45,36 @@ namespace OldMusicBox.EIH.Demo.Controllers
             // the identity provider possibly needs the SessionIndex, too
             // note that the SessionIndex is obtained in the Account/Logon
             // and stored for the current session
-            var cookieValue = this.Request.Cookies[FormsAuthentication.FormsCookieName].Value;
-            var ticket      = FormsAuthentication.Decrypt(cookieValue);
+            var sessionIndex = ((System.Security.Claims.ClaimsPrincipal)this.User).FindFirst(Client.Constants.Saml2ClaimTypes.SessionIndex).Value;
 
             // LogoutRequest factory
             var logoutRequestCofiguration = new LogoutRequestConfiguration()
             {
                 Destination = logoutService,
-                Issuer = assertionIssuer,
-                NameID = new Client.Model.NameID()
+                Issuer      = assertionIssuer,
+                NameID      = new Client.Model.NameID()
                 {
                     Text   = this.User.Identity.Name,
                     Format = Client.Constants.NameID.UNSPECIFIED,
                 },
-                SessionIndex = ticket.UserData,
+                SessionIndex      = sessionIndex,
                 X509Configuration = x509Configuration
             };
 
             var logoutResponse = saml2.GetLogoutResponse(this.Request, logoutRequestCofiguration);
+            if (Session["logout"] != null)
+                Session.Remove("logout");
+            Session.Add("logout", logoutResponse);
 
-            FormsAuthentication.SignOut();
+            SessionAuthenticationModule sam = FederatedAuthentication.SessionAuthenticationModule;
+            sam.DeleteSessionTokenCookie();
 
-            return Redirect("/Home/Index");
+            return Redirect("/Home/LogoutStatus");
+        }
+
+        public ActionResult LogoutStatus()
+        {
+            return View();
         }
     }
 }

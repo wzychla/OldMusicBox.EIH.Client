@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IdentityModel.Selectors;
+using System.IdentityModel.Services;
 using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Security.Claims;
@@ -160,6 +161,7 @@ namespace OldMusicBox.EIH.Demo.Controllers
                     Configuration = configuration
                 };
                 var identity = tokenHandler.ValidateToken(securityToken).FirstOrDefault();
+                
                 // WK nie zwraca loginu, zwraca tylko imię/nazwisko/pesel/data urodzenia
                 if (identity.FindFirst(ClaimTypes.Name) == null)
                 {
@@ -168,15 +170,18 @@ namespace OldMusicBox.EIH.Demo.Controllers
 
                 // this is the SessionIndex, store it if necessary
                 string sessionIndex = securityToken.Assertion.ID;
+                identity.AddClaim(new Claim(Saml2ClaimTypes.SessionIndex, sessionIndex));
 
                 // the token is validated succesfully
                 var principal = new ClaimsPrincipal(identity);
                 if (principal.Identity.IsAuthenticated)
                 {
-                    var formsTicket = new FormsAuthenticationTicket(
-                        1, principal.Identity.Name, DateTime.UtcNow, DateTime.UtcNow.Add(FormsAuthentication.Timeout), false, sessionIndex);
+                    SessionAuthenticationModule sam = FederatedAuthentication.SessionAuthenticationModule;
+                    var token =
+                        sam.CreateSessionSecurityToken(principal, string.Empty,
+                             DateTime.Now.ToUniversalTime(), DateTime.Now.AddMinutes(60).ToUniversalTime(), false);
 
-                    this.Response.AppendCookie(new HttpCookie(FormsAuthentication.FormsCookieName, FormsAuthentication.Encrypt(formsTicket)));
+                    sam.WriteSessionTokenToCookie(token);
 
                     var redirectUrl = FormsAuthentication.GetRedirectUrl(principal.Identity.Name, false);
 

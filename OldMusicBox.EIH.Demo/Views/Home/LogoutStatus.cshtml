@@ -1,0 +1,20 @@
+﻿<h2>Logout Status</h2>
+
+@if( Session["logout"] != null)
+{
+    <div>
+        <pre>
+            @Html.Raw( ((OldMusicBox.EIH.Client.Model.LogoutResponse)Session["logout"]).RawMessage.Payload )
+        </pre>
+    </div>
+}
+else
+{
+    <div>
+        No logout status information available
+    </div>
+}
+
+
+<a href="/Home/Index">Return to main page</a>
+

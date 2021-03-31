@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants\Binding.cs" />
+    <Compile Include="Constants\Saml2ClaimTypes.cs" />
     <Compile Include="Constants\Consent.cs" />
     <Compile Include="Constants\Eidas.cs" />
     <Compile Include="Constants\Elements.cs" />

@@ -3,6 +3,21 @@
     Hello world from Węzeł Krajowy (OldMusicBox.EIH.Client). You are logged as @this.User.Identity.Name
 </div>
 <div>
+    <table>
+        <tr>
+            <th>Claim type</th>
+            <th>Claim value</th>
+        </tr>
+        @foreach ( var claim in ((System.Security.Claims.ClaimsPrincipal)this.User).Claims )
+        {
+    <tr>
+        <td>@claim.Type</td>
+        <td>@claim.Value</td>
+    </tr>
+        }
+    </table>
+</div>
+<div>
     Click here for <a href="/Home/Logout"> EIH logout</a>
 </div>
 
