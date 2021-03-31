@@ -91,6 +91,18 @@ namespace OldMusicBox.EIH.Client.Model.Logout
             }
         }
 
+        public Status Status
+        {
+            get
+            {
+                return this.LogoutResponse.Status;
+            }
+            set
+            {
+                this.LogoutResponse.Status = value;
+            }
+        }
+
         /// <summary>
         /// Request binding
         /// </summary>
@@ -143,6 +155,20 @@ namespace OldMusicBox.EIH.Client.Model.Logout
             {
                 var signedLogoutResponse = this.MessageSigner.Sign(this.LogoutResponse, this.X509Configuration);
                 return Convert.ToBase64String(signedLogoutResponse);
+            }
+
+            throw new ArgumentException("LogoutResponse must be signed. The factory needs a non-empty X509 configuration.");
+        }
+
+        public virtual string Create()
+        {
+            // sign the request?
+            if (this.X509Configuration != null &&
+                this.X509Configuration.SignatureCertificate != null
+                )
+            {
+                var signedLogoutResponse = this.MessageSigner.Sign(this.LogoutResponse, this.X509Configuration);
+                return signedLogoutResponse.AsEnveloped(this.Encoding);
             }
 
             throw new ArgumentException("LogoutResponse must be signed. The factory needs a non-empty X509 configuration.");

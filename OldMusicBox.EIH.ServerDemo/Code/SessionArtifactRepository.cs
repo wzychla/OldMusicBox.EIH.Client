@@ -40,5 +40,17 @@ namespace OldMusicBox.EIH.ServerDemo
                 return null;
             }
         }
+
+        public bool RemoveSession( string sessionIndex )
+        {
+            if (_sessions.ContainsKey(sessionIndex))
+            {
+                return _sessions.Remove(sessionIndex);
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

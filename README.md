@@ -6,7 +6,7 @@ The client will support the Węzeł Krajowy SSO flow
 The implementation follows the 
 [official specification](https://mc.bip.gov.pl/interoperacyjnosc-mc/wezel-krajowy-dokumentacja-dotyczaca-integracji-z-wezlem-krajowym.html).
 
-## Current Version: 0.6
+## Current Version: 0.62
 
 Please refer to the change list and the road map below.
 
@@ -80,6 +80,9 @@ This is the demo **server application**. It follows the server implementation cl
 |Server demo application is very useful. In particular, you can use it to quickly validate any client implementation, including implementations developed in other technology stacks (node.js, Java, PHP). If you plan to integrate with Węzeł Krajowy, consider this server demo as a preliminary Węzeł Krajowy test enviroment. |
 
 ## Version History:
+
+* 0.62 (2021-03-31)
+    * reworked the SessionIndex negotiation between the client and the server, hope it's corrected now
 
 * 0.6 (2021-03-25)
     * server demo works

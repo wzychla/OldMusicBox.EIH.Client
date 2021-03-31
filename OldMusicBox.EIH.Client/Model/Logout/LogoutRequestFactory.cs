@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Xml;
 
 namespace OldMusicBox.EIH.Client.Model.Logout
 {
@@ -33,8 +34,37 @@ namespace OldMusicBox.EIH.Client.Model.Logout
         {
             if (request == null) throw new ArgumentNullException();
 
+            // posted by a passive client?
             var rawMessage = new RawMessageFactory().FromIdpRequest(request);
-            if (rawMessage == null) return null;
+            if (rawMessage == null)
+            {
+                // posted by an active client?
+                var soapEnvelope                = new XmlDocument();
+                soapEnvelope.XmlResolver        = null;
+                soapEnvelope.PreserveWhitespace = true;
+                try
+                {
+                    soapEnvelope.Load(request.InputStream);
+                }
+                catch
+                {
+                    return null;
+                }
+
+                // retrieve the actual payload
+                var rawMessageString = soapEnvelope.FromEnveloped();
+                if (!string.IsNullOrEmpty(rawMessageString))
+                {
+                    rawMessage = new RawMessage()
+                    {
+                        Payload = rawMessageString
+                    };
+                }
+                else
+                {
+                    return null;
+                }
+            }
 
             // log
             new LoggerFactory().For(this).Debug(Event.LogoutRequest, rawMessage.Payload);

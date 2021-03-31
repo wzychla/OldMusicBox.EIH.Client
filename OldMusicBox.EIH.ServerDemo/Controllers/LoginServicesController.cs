@@ -1,5 +1,6 @@
 ﻿using OldMusicBox.EIH.Client;
 using OldMusicBox.EIH.Client.Model;
+using OldMusicBox.EIH.Client.Model.Logout;
 using OldMusicBox.EIH.Client.Signature;
 using System;
 using System.Collections.Generic;
@@ -49,7 +50,7 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
 
             // create encrypt and return the ArtifactResponse
 
-            // this is optional
+            // encryption
             var x509Configuration = new X509Configuration()
             {
                 SignatureCertificate    = ServerCertificateProvider.GetSigCertificate(),
@@ -72,13 +73,13 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
             responseFactory.Issuer            = issuer;
 
             artifactResponseFactory.X509Configuration = x509Configuration;
-            artifactResponseFactory.InResponseTo      = artifactResolve.ID;
+            artifactResponseFactory.InResponseTo      = sessionIndex;
             artifactResponseFactory.Issuer            = issuer;
 
-            encryptedAssertionFactory.Principal         = new SessionArtifactRepository().QuerySessionPrincipal(artifactResolve.Artifact);
+            encryptedAssertionFactory.Principal         = new SessionArtifactRepository().QuerySessionPrincipal(sessionIndex);
             encryptedAssertionFactory.AssertionIssuer   = ConfigurationManager.AppSettings["Issuer"];
             encryptedAssertionFactory.AssertionConsumer = artifactResolve.Issuer;
-            encryptedAssertionFactory.SessionIndex      = artifactResolve.ID;
+            encryptedAssertionFactory.SessionIndex      = sessionIndex;
             encryptedAssertionFactory.X509Configuration = x509Configuration;
 
             responseFactory.EncryptedAssertions               = encryptedAssertionFactory.Build();
@@ -90,11 +91,59 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
         }
 
         /// <summary>
-        /// Not yet
+        /// Logout 
         /// </summary>
         public ActionResult SingleLogoutService()
         {
-            throw new NotImplementedException();
+            // pick up the LogoutRequest from the request
+            var logoutRequest = new LogoutRequestFactory().From(this.Request);
+            if (logoutRequest == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            // validate
+            var saml2             = new Saml2AuthenticationModule();
+            var validateionResult = saml2.MessageSigner.Validate(logoutRequest, out Org.BouncyCastle.X509.X509Certificate certificate);
+
+            // is not only that document should be valid but also its issuer and the certificate should match!
+            if (!validateionResult)
+            {
+                throw new ApplicationException("Invalid signature");
+            }
+
+            // check if a matching session exists
+            var sessionIndex     = logoutRequest.SessionIndex;
+            new SessionArtifactRepository().RemoveSession(sessionIndex);
+
+            // create response
+            // encryption
+            var x509Configuration = new X509Configuration()
+            {
+                SignatureCertificate = ServerCertificateProvider.GetSigCertificate(),
+                SignaturePrivateKey  = ServerCertificateProvider.GetSigPrivateKey(),
+                IncludeKeyInfo       = true,
+                SignatureAlgorithm   = SignatureAlgorithm.ECDSA256
+            };
+
+            var issuer = ConfigurationManager.AppSettings["Issuer"];
+
+            var logoutResponseFactory               = new LogoutResponseFactory();
+            logoutResponseFactory.InResponseTo      = logoutRequest.ID;
+            logoutResponseFactory.Issuer            = issuer;
+            logoutResponseFactory.Status            = new Status()
+            {
+                StatusCode = new StatusCode()
+                {
+                    Value = Client.Constants.StatusCodes.SUCCESS
+                }
+            };
+
+            logoutResponseFactory.X509Configuration = x509Configuration;
+
+            var logoutResponse = logoutResponseFactory.Create();
+
+            return Content(logoutResponse, "text/xml");
         }
     }
 }

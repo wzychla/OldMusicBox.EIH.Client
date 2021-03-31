@@ -24,6 +24,7 @@ namespace OldMusicBox.EIH.Client.Model
 
             // read full soap envelope as XML
             var soapEnvelope                = new XmlDocument();
+            soapEnvelope.XmlResolver        = null;
             soapEnvelope.PreserveWhitespace = true;
             soapEnvelope.Load(request.InputStream);
 

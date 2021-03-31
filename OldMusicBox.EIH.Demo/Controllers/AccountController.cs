@@ -169,7 +169,7 @@ namespace OldMusicBox.EIH.Demo.Controllers
                 }
 
                 // this is the SessionIndex, store it if necessary
-                string sessionIndex = securityToken.Assertion.ID;
+                string sessionIndex = securityToken.Assertion.AuthnStatement.SessionIndex;
                 identity.AddClaim(new Claim(Saml2ClaimTypes.SessionIndex, sessionIndex));
 
                 // the token is validated succesfully
