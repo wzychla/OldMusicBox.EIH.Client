@@ -1,7 +1,7 @@
 # OldMusicBox.EIH.Client
 
 The goal of this project is to provide an independent .NET EIH (Electronic Identification Hub, **Węzeł Krajowy**) Client. 
-The client will support the Węzeł Krajowy SSO flow
+The client will support the Węzeł Krajowy SSO flow (SAML2 with ECDSA and assertion encryption).
 
 The implementation follows the 
 [official specification](https://mc.bip.gov.pl/interoperacyjnosc-mc/wezel-krajowy-dokumentacja-dotyczaca-integracji-z-wezlem-krajowym.html).
@@ -14,11 +14,11 @@ Please refer to the change list and the road map below.
 
 |  Feature  | Status |
 |----|:---:|
-|Client demo|**yes**|
-|Server demo|**yes**|
-|NuGet|**yes**|
 |Single Sign On|**yes**|
 |Single Log Out|**yes**|
+|Client demo|**yes**|
+|Server demo|**yes**|
+|NuGet|[**yes**](https://www.nuget.org/packages/OldMusicBox.EIH.Client/)|
 |.NET Framework|4.6.2+|
 |.NET Core|not yet|
 
@@ -26,20 +26,20 @@ Please refer to the change list and the road map below.
 
 ### EIH (Węzeł Krajowy) SSO
 
-Węzeł Krajowy SSO is based on SAML2 ARTIFACT binding. The implementation follows the eIDAS (Electronic Identification and Trust Services Regulation) regulation when it comes to cryptography:
+Węzeł Krajowy SSO is based on SAML2 ARTIFACT binding. The implementation follows the eIDAS (Electronic Identification and Trust Services Regulation) cryptographic regulation:
 
 * requests and responses are signed using the ECDSA private keys 
 (Elliptic Curve Digital Signature Algorithm)
 * the elliptic curve used in private keys is the 
 NIST Curve P-256
-* the assertion returned from the ArtifactResolve call is signed using:
-   * AES256-GCM – data signing
+* the assertion returned from the **ArtifactResolve** call is encrypted using:
    * AES-256-KW – key signing
+   * AES-256-GCM – data signing
    * the key is protected with the ECDH-ES Key Agreement protocol
 
 ### EIH (Węzeł Krajowy) in .NET
 
-Węzeł Krajowy in .NET is difficult because
+Węzeł Krajowy in .NET/C# is difficult because
 
 * the base class library doesn't contain the SAML2 client
 * the base class library doesn't support the ECDSA in **SignedXml**
@@ -48,7 +48,7 @@ Because of this, [BouncyCastle](https://github.com/bcgit/bc-csharp) must be used
 
 The SAML2 is based on the [OldMusicBox.SAML2](https://github.com/wzychla/OldMusicBox.Saml2) and my ultimate goal is to have a single SAML2 stack where the cryptography is abstracted so that you can switch between the Base Class Library that does RSA and BouncyCastle if you also need ECDSA.
 
-Still, the most difficult part of the implementation is the encrypted assertion decryption. The Centralny Ośrodek Informatyki publishes a source code of a Java decryptor. The core part of their decryptor uses few different Java packages. The tricky part here
+Still, the most difficult part of the implementation is the encrypted assertion decryption. The COI (*Centralny Ośrodek Informatyki*) publishes a source code of a Java decryptor. The core part of their decryptor uses few different Java packages. The tricky part here
 was then to rewrite the Java code to .NET - it was fairly
 straightforward to rewrite the BouncyCastle code, however
 it was not that easy to rewrite the **org.apache.xml.security.encryption.XMLCipher** code. 
@@ -78,6 +78,14 @@ This is the demo **server application**. It follows the server implementation cl
 | **Important!** |
 |----------------|
 |Server demo application is very useful. In particular, you can use it to quickly validate any client implementation, including implementations developed in other technology stacks (node.js, Java, PHP). If you plan to integrate with Węzeł Krajowy, consider this server demo as a preliminary Węzeł Krajowy test enviroment. |
+
+### How to obtain certificates
+
+To run the demo client against the demo server - use provided certificates or generate your own certificates using any compatible software. The [Keystore Explorer](https://keystore-explorer.org/) is my choice because of the clean and simple GUI.
+
+To connect to the WK test site (Symulator) you will need certificates from the service provider (COI).
+
+To connect to the actual WK site you get production certificates from a certificate provider.
 
 ## Version History:
 
