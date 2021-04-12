@@ -33,8 +33,8 @@ Węzeł Krajowy SSO is based on SAML2 ARTIFACT binding. The implementation follo
 * the elliptic curve used in private keys is the 
 NIST Curve P-256
 * the assertion returned from the **ArtifactResolve** call is encrypted using:
-   * AES-256-KW – key signing
-   * AES-256-GCM – data signing
+   * AES-256-KW – key encryption
+   * AES-256-GCM – data encryption
    * the key is protected with the ECDH-ES Key Agreement protocol
 
 ### EIH (Węzeł Krajowy) in .NET
