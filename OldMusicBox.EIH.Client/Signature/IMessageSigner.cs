@@ -30,6 +30,14 @@ namespace OldMusicBox.EIH.Client.Signature
             );
 
         /// <summary>
+        /// Validate against given key
+        /// </summary>
+        bool Validate(
+            IVerifiableMessage message,
+            Org.BouncyCastle.Crypto.AsymmetricKeyParameter key
+            );
+
+        /// <summary>
         /// Validate against certificate found in the XML
         /// </summary>
         bool Validate(

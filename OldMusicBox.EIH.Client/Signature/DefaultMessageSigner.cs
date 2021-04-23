@@ -3,6 +3,7 @@ using OldMusicBox.EIH.Client.Logging;
 using OldMusicBox.EIH.Client.Model;
 using OldMusicBox.EIH.Client.Serialization;
 using OldMusicBox.EIH.Client.Validation;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Xml;
 using System;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ namespace OldMusicBox.EIH.Client.Signature
                 throw new ArgumentNullException("message");
             }
             if ( x509Configuration == null ||
-                 x509Configuration.SignatureCertificate == null 
+                 (x509Configuration.IncludeKeyInfo && x509Configuration.SignatureCertificate == null)
                 )
             {
                 throw new ArgumentNullException("certificate");
@@ -76,21 +77,44 @@ namespace OldMusicBox.EIH.Client.Signature
             signed.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
             switch ( x509Configuration.SignatureAlgorithm )
             {
-                case SignatureAlgorithm.SHA1:
-                    signed.SigningKey                 = x509Configuration.SignaturePrivateKey;
+                case SignatureAlgorithm.RSA1:
+                    signed.SigningKey                 = (AsymmetricKeyParameter)x509Configuration.SignaturePrivateKey;
                     signed.SignedInfo.SignatureMethod = SignedXml.XmlDsigRSASHA1Url;
                     reference.DigestMethod            = SignedXml.XmlDsigSHA1Url;
                     break;
-                case SignatureAlgorithm.SHA256:
+
+                case SignatureAlgorithm.RSA256:
                     signed.SigningKey                 = x509Configuration.SignaturePrivateKey;
                     signed.SignedInfo.SignatureMethod = SignedXml.XmlDsigRSASHA256Url;
                     reference.DigestMethod            = SignedXml.XmlDsigSHA256Url;
                     break;
+
+                case SignatureAlgorithm.DSA256:
+                    signed.SigningKey                 = x509Configuration.SignaturePrivateKey;
+                    signed.SignedInfo.SignatureMethod = SignedXml.XmlDsigDSASha256Url;
+                    reference.DigestMethod            = SignedXml.XmlDsigSHA256Url;
+                    break;
+
                 case SignatureAlgorithm.ECDSA256:
                     signed.SigningKey                 = x509Configuration.SignaturePrivateKey;
                     signed.SignedInfo.SignatureMethod = SignedXml.XmlDsigEcdsaSha256Url;
                     reference.DigestMethod            = SignedXml.XmlDsigSHA256Url;
                     break;
+
+                case SignatureAlgorithm.HMAC1:
+                    signed.SigningKey                 = x509Configuration.SignaturePrivateKey;
+                    signed.SignedInfo.SignatureMethod = SignedXml.XmlDsigHMACSHA1Url;
+                    reference.DigestMethod            = SignedXml.XmlDsigSHA1Url;
+                    break;
+
+                case SignatureAlgorithm.HMAC256:
+                    signed.SigningKey                 = x509Configuration.SignaturePrivateKey;
+                    signed.SignedInfo.SignatureMethod = SignedXml.XmlDsigHMACSHA256Url;
+                    reference.DigestMethod            = SignedXml.XmlDsigSHA256Url;
+                    break;
+
+                default:
+                    throw new ArgumentException("Provided signature algorithm is not supported");
             }
 
             if ( x509Configuration.IncludeKeyInfo )
@@ -118,59 +142,6 @@ namespace OldMusicBox.EIH.Client.Signature
             var result = this.encoding.GetBytes(xml.OuterXml);
             return result;
         }
-
-
-        //private bool VerifyXml(byte[] data)
-        //{
-        //    XmlDocument xd = new XmlDocument();
-        //    xd.PreserveWhitespace = true;
-
-        //    using (var stream = new MemoryStream(data))
-        //    {
-        //        stream.Seek(0, SeekOrigin.Begin);
-        //        xd.Load(stream);
-        //    }
-
-        //    SignedXml signedXml = new SignedXml(xd);
-
-        //    // load the first <signature> node and load the signature  
-        //    XmlNode MessageSignatureNode = xd.GetElementsByTagName("Signature")[0];
-        //    if (MessageSignatureNode == null)
-        //    {
-        //        MessageSignatureNode = xd.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#")[0];
-        //    }
-
-        //    signedXml.LoadXml((XmlElement)MessageSignatureNode);
-        //    signedXml.SafeCanonicalizationMethods.Add("http://www.w3.org/TR/1999/REC-xpath-19991116");
-
-        //    // get the cert from the signature
-        //    Org.BouncyCastle.X509.X509Certificate certificate = null;
-        //    foreach (KeyInfoClause clause in signedXml.KeyInfo)
-        //    {
-        //        if (clause is KeyInfoX509Data)
-        //        {
-        //            if (((KeyInfoX509Data)clause).Certificates.Count > 0)
-        //            {
-        //                certificate =
-        //                (Org.BouncyCastle.X509.X509Certificate)((KeyInfoX509Data)clause).Certificates[0];
-        //            }
-        //        }
-        //    }
-
-        //    // check the signature and return the result.
-        //    return signedXml.CheckSignature(certificate, true);
-        //}
-
-
-
-        //private void SetPrefix(string prefix, XmlNode node)
-        //{
-        //    foreach (XmlNode n in node.ChildNodes)
-        //        SetPrefix(prefix, n);
-        //    node.Prefix = prefix;
-        //}
-
-
 
         public virtual bool Validate(
             IVerifiableMessage message,
@@ -203,6 +174,52 @@ namespace OldMusicBox.EIH.Client.Signature
                     signedXml.SafeCanonicalizationMethods.Add("http://www.w3.org/TR/1999/REC-xpath-19991116");
 
                     var result = signedXml.CheckSignature(certificate.GetPublicKey());
+
+                    if (!result)
+                    {
+                        return false; // throw new ValidationException(string.Format("{0} signature validation failed", message.GetType().Name ));
+                    }
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public virtual bool Validate(
+            IVerifiableMessage message,
+            Org.BouncyCastle.Crypto.AsymmetricKeyParameter key
+        )
+        {
+            if (message == null || message.RawMessage == null ||
+                 string.IsNullOrEmpty(message.RawMessage.Payload)
+                )
+            {
+                throw new ArgumentNullException("message");
+            }
+            if (key == null)
+            {
+                throw new ArgumentNullException("key");
+            }
+
+            // search for signatures (possibly multiple)
+            var xml = new XmlDocument();
+            xml.LoadXml(message.RawMessage.Payload);
+
+            var signatureNodes = xml.GetElementsByTagName("Signature", Namespaces.XMLDSIG);
+
+            if (signatureNodes.Count > 0)
+            {
+                foreach (XmlElement signatureNode in signatureNodes)
+                {
+                    var signedXml = new SignedXml(signatureNode.ParentNode as XmlElement);
+                    signedXml.LoadXml(signatureNode);
+                    signedXml.SafeCanonicalizationMethods.Add("http://www.w3.org/TR/1999/REC-xpath-19991116");
+
+                    var result = signedXml.CheckSignature(key);
 
                     if (!result)
                     {

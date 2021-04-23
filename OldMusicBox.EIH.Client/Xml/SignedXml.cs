@@ -70,8 +70,11 @@ namespace Org.BouncyCastle.Crypto.Xml
 
         public const string XmlDsigSHA1Url = "http://www.w3.org/2000/09/xmldsig#sha1";
         public const string XmlDsigDSAUrl = "http://www.w3.org/2000/09/xmldsig#dsa-sha1";
+        public const string XmlDsigDSASha256Url = "http://www.w3.org/2000/09/xmldsig#dsa-sha256";
         public const string XmlDsigRSASHA1Url = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
+
         public const string XmlDsigHMACSHA1Url = "http://www.w3.org/2000/09/xmldsig#hmac-sha1";
+        public const string XmlDsigHMACSHA256Url = "http://www.w3.org/2000/09/xmldsig#hmac-sha256";
 
         public const string XmlDsigSHA256Url = "http://www.w3.org/2001/04/xmlenc#sha256";
         public const string XmlDsigRSASHA256Url = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";

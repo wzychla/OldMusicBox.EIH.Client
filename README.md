@@ -6,7 +6,7 @@ The client will support the Węzeł Krajowy SSO flow (SAML2 with ECDSA and asser
 The implementation follows the 
 [official specification](https://mc.bip.gov.pl/interoperacyjnosc-mc/wezel-krajowy-dokumentacja-dotyczaca-integracji-z-wezlem-krajowym.html).
 
-## Current Version: 0.62
+## Current Version: 0.65
 
 Please refer to the change list and the road map below.
 
@@ -51,7 +51,7 @@ The SAML2 is based on the [OldMusicBox.SAML2](https://github.com/wzychla/OldMusi
 Still, the most difficult part of the implementation is the encrypted assertion decryption. The COI (*Centralny Ośrodek Informatyki*) publishes a source code of a Java decryptor. The core part of their decryptor uses few different Java packages. The tricky part here
 was then to rewrite the Java code to .NET - it was fairly
 straightforward to rewrite the BouncyCastle code, however
-it was not that easy to rewrite the **org.apache.xml.security.encryption.XMLCipher** code. 
+it was quite a challenge rewrite the **org.apache.xml.security.encryption.XMLCipher** code. The [Bouncy-Castle-AES-GCM-Encryption](https://github.com/lukemerrett/Bouncy-Castle-AES-GCM-Encryption) is a great help here.
 
 ## Repository content
 
@@ -77,7 +77,7 @@ This is the demo **server application**. It follows the server implementation cl
 
 | **Important!** |
 |----------------|
-|Server demo application is very useful. In particular, you can use it to quickly validate any client implementation, including implementations developed in other technology stacks (node.js, Java, PHP). If you plan to integrate with Węzeł Krajowy, consider this server demo as a preliminary Węzeł Krajowy test enviroment. |
+|Server demo application could be very useful. In particular, it can be used to quickly validate any client implementation, including implementations developed in other technology stacks (node.js, Java, PHP). If you plan to integrate with Węzeł Krajowy, consider this server demo as a preliminary Węzeł Krajowy test enviroment. |
 
 ### How to obtain certificates
 
@@ -88,6 +88,9 @@ To connect to the WK test site (Symulator) you will need certificates from the s
 To connect to the actual WK site you get production certificates from a certificate provider.
 
 ## Version History:
+
+* 0.65 (2021-04-23)
+    * experimental support for `http://www.w3.org/2000/09/xmldsig#hmac-sha256` signatures in `SignedXml` (not required for WK integration but interesting enough to try it)
 
 * 0.62 (2021-03-31)
     * reworked the SessionIndex negotiation between the client and the server, hope it's corrected now

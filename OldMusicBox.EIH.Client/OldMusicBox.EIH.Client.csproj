@@ -151,6 +151,8 @@
     <Compile Include="Xml\ExcAncestralNamespaceContextManager.cs" />
     <Compile Include="Xml\ExcCanonicalXml.cs" />
     <Compile Include="Xml\HashWrappers.cs" />
+    <Compile Include="Xml\HMacKeyParameter.cs" />
+    <Compile Include="Xml\HMacSigner.cs" />
     <Compile Include="Xml\ICanonicalizableNode.cs" />
     <Compile Include="Xml\IRelDecryptor.cs" />
     <Compile Include="Xml\KeyInfo.cs" />

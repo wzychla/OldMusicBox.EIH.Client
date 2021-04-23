@@ -59,6 +59,9 @@ namespace Org.BouncyCastle.Crypto.Xml
                 case "System.Security.Cryptography.DSASignatureDescription":
                     //return SignerUtilities.GetSigner("DSAWITHSHA1");
                     return new DsaDigestSigner2(new DsaSigner(), new Sha1Digest());
+                case "http://www.w3.org/2000/09/xmldsig#dsa-sha256":
+                    //return SignerUtilities.GetSigner("DSAWITHSHA1");
+                    return new DsaDigestSigner2(new DsaSigner(), new Sha256Digest());
                 case "http://www.w3.org/2000/09/xmldsig#rsa-sha1":
                 case "System.Security.Cryptography.RSASignatureDescription":
                     return SignerUtilities.GetSigner("SHA1WITHRSA");
@@ -77,7 +80,12 @@ namespace Org.BouncyCastle.Crypto.Xml
                     return new Gost3410DigestSigner(new ECGost3410Signer(), new Gost3411_2012_512Digest());
 
                 case "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256":
-                    return SignerUtilities.GetSigner("SHA-256withPLAIN-ECDSA"); 
+                    return SignerUtilities.GetSigner("SHA-256withPLAIN-ECDSA");
+
+                case "http://www.w3.org/2000/09/xmldsig#hmac-sha1":
+                    return new HMacSigner(new Sha1Digest());
+                case "http://www.w3.org/2000/09/xmldsig#hmac-sha256":
+                    return new HMacSigner(new Sha256Digest());
 
                 // workarounds for issue https://github.com/dotnet/corefx/issues/16563
                 // remove attribute from this method when removing them

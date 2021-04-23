@@ -9,14 +9,13 @@ namespace OldMusicBox.EIH.Client.Signature
     /// <summary>
     /// Signature Algorithm
     /// </summary>
-    /// <remarks>
-    /// The ECDSA signatures are NOT YET supported
-    /// because the SignedXml doesn't support it
-    /// </remarks>
     public enum SignatureAlgorithm
     {
-        SHA1,
-        SHA256,
-        ECDSA256
+        RSA1,
+        RSA256,
+        DSA256,
+        ECDSA256,
+        HMAC1,
+        HMAC256
     }
 }
