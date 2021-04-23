@@ -160,36 +160,43 @@ namespace OldMusicBox.EIH.Demo.Controllers
                 {
                     Configuration = configuration
                 };
-                var identity = tokenHandler.ValidateToken(securityToken).FirstOrDefault();
-                
-                // WK nie zwraca loginu, zwraca tylko imię/nazwisko/pesel/data urodzenia
-                if (identity.FindFirst(ClaimTypes.Name) == null)
+                try
                 {
-                    identity.AddClaim(new Claim(ClaimTypes.Name, identity.FindFirst(ClaimTypes.NameIdentifier).Value));
+                    var identity = tokenHandler.ValidateToken(securityToken).FirstOrDefault();
+
+                    // WK nie zwraca loginu, zwraca tylko imię/nazwisko/pesel/data urodzenia
+                    if (identity.FindFirst(ClaimTypes.Name) == null)
+                    {
+                        identity.AddClaim(new Claim(ClaimTypes.Name, identity.FindFirst(ClaimTypes.NameIdentifier).Value));
+                    }
+
+                    // this is the SessionIndex, store it if necessary
+                    string sessionIndex = securityToken.Assertion.AuthnStatement.SessionIndex;
+                    identity.AddClaim(new Claim(Saml2ClaimTypes.SessionIndex, sessionIndex));
+
+                    // the token is validated succesfully
+                    var principal = new ClaimsPrincipal(identity);
+                    if (principal.Identity.IsAuthenticated)
+                    {
+                        SessionAuthenticationModule sam = FederatedAuthentication.SessionAuthenticationModule;
+                        var token =
+                            sam.CreateSessionSecurityToken(principal, string.Empty,
+                                 DateTime.Now.ToUniversalTime(), DateTime.Now.AddMinutes(60).ToUniversalTime(), false);
+
+                        sam.WriteSessionTokenToCookie(token);
+
+                        var redirectUrl = FormsAuthentication.GetRedirectUrl(principal.Identity.Name, false);
+
+                        return Redirect(redirectUrl);
+                    }
+                    else
+                    {
+                        throw new ArgumentNullException("principal", "Unauthenticated principal returned from token validation");
+                    }
                 }
-
-                // this is the SessionIndex, store it if necessary
-                string sessionIndex = securityToken.Assertion.AuthnStatement.SessionIndex;
-                identity.AddClaim(new Claim(Saml2ClaimTypes.SessionIndex, sessionIndex));
-
-                // the token is validated succesfully
-                var principal = new ClaimsPrincipal(identity);
-                if (principal.Identity.IsAuthenticated)
+                catch ( Exception ex )
                 {
-                    SessionAuthenticationModule sam = FederatedAuthentication.SessionAuthenticationModule;
-                    var token =
-                        sam.CreateSessionSecurityToken(principal, string.Empty,
-                             DateTime.Now.ToUniversalTime(), DateTime.Now.AddMinutes(60).ToUniversalTime(), false);
-
-                    sam.WriteSessionTokenToCookie(token);
-
-                    var redirectUrl = FormsAuthentication.GetRedirectUrl(principal.Identity.Name, false);
-
-                    return Redirect(redirectUrl);
-                }
-                else
-                {
-                    throw new ArgumentNullException("principal", "Unauthenticated principal returned from token validation");
+                    return Content("Problem z uwierzytelnieniem " + ex.Message);
                 }
             }
         }
