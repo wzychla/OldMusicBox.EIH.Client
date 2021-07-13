@@ -6,7 +6,7 @@ The client will support the Węzeł Krajowy SSO flow (SAML2 with ECDSA and asser
 The implementation follows the 
 [official specification](https://mc.bip.gov.pl/interoperacyjnosc-mc/wezel-krajowy-dokumentacja-dotyczaca-integracji-z-wezlem-krajowym.html).
 
-## Current Version: 0.65
+## Current Version: 0.70
 
 Please refer to the change list and the road map below.
 
@@ -88,6 +88,13 @@ To connect to the WK test site (Symulator) you will need certificates from the s
 To connect to the actual WK site you get production certificates from a certificate provider.
 
 ## Version History:
+
+* 0.70 (2021-07-13)
+    * fixed something that looks like a problem at the server. Looks like the production server (`login.gov.pl`) does the `aes256-gcm` differently than the two, the integration
+    (`int.wk.login.gov.pl`) and simulation (`symulator.login.gov.pl`). Namely, despite declaring the encryption algorithm as `aes256-gcm`, the server returns the encryption
+    key that has only 128 bits (!). The two correctly return the key of 256 bits. This discrepancy was not handled in the previous version of the code where the 256-bits
+    where assumed and hardcoded. Currently the key size is determined dynamically depending on the actual size and more over, a static class has been added that
+    makes it possible to override the three: key size, mac size and nonce size
 
 * 0.65 (2021-04-23)
     * experimental support for `http://www.w3.org/2000/09/xmldsig#hmac-sha256` signatures in `SignedXml` (not required for WK integration but interesting enough to try it)

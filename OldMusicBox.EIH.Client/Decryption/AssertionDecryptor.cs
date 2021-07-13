@@ -113,7 +113,20 @@ namespace OldMusicBox.EIH.Client.Decryption
             // uzycie klucza uzyskanego powyzej do odszyfrowania danych (asercji)
             var cipherText = Convert.FromBase64String(parameters.EncryptedDataCipher);
 
-            EncryptionService es   = new EncryptionService(256, 128, 96);
+            int keyBitSize =
+                AssertionDecryptorConfigurationOverrides.KeyBitSize != null
+                ? AssertionDecryptorConfigurationOverrides.KeyBitSize.Value
+                : encryptionKey.Length << 3;
+            int macBitSize =
+                AssertionDecryptorConfigurationOverrides.MacBitSize != null
+                ? AssertionDecryptorConfigurationOverrides.MacBitSize.Value
+                : 128;
+            int nonceBitSize =
+                AssertionDecryptorConfigurationOverrides.NonceBitSize != null
+                ? AssertionDecryptorConfigurationOverrides.NonceBitSize.Value
+                : 96;
+
+            EncryptionService es   = new EncryptionService(keyBitSize, macBitSize, nonceBitSize);
             byte[] decryptedDoc    = es.DecryptWithKey(cipherText, encryptionKey);
             string decryptedString = Encoding.UTF8.GetString(decryptedDoc);
 

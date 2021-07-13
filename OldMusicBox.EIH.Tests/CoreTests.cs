@@ -20,7 +20,7 @@ namespace OldMusicBox.EIH.Tests
             string certPwd  = "12345";
 
             // arrange
-            var token            = GetSecurityTokenFromAssertionResponse();
+            var token            = GetSecurityTokenFromAssertionResponse("./Resources/encryptedEC.xml");
             var certificate      = ClientCertificateProvider.GetCertificate(certName, certPwd);
             var privateKey       = ClientCertificateProvider.GetPrivateKey(certName, certPwd);
 
@@ -40,9 +40,9 @@ namespace OldMusicBox.EIH.Tests
         #region Aux
 
 
-        public static Saml2SecurityToken GetSecurityTokenFromAssertionResponse()
+        public static Saml2SecurityToken GetSecurityTokenFromAssertionResponse(string fileName)
         {
-            var fileContent = File.ReadAllText("./Resources/encryptedEC.xml", Encoding.UTF8);
+            var fileContent = File.ReadAllText(fileName, Encoding.UTF8);
 
             using (StringReader sr = new StringReader(fileContent))
             {

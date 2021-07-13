@@ -139,64 +139,75 @@ namespace OldMusicBox.EIH.Demo.Controllers
                 }
 
                 // fail if there is no token
-                if (securityToken == null)
+                if (securityToken == null || 
+                    securityToken.Response == null ||
+                    securityToken.Response.Status == null ||
+                    securityToken.Response.Status.StatusCode == null
+                    )
                 {
                     throw new ArgumentNullException("No security token found in the response accoding to the Response Binding configuration");
                 }
 
-                // token will be decrypted (if necessary)
-                saml2.TryDecryptingEncryptedAssertions(securityToken, x509Configuration);
-
-                // the token will be validated
-                var configuration = new SecurityTokenHandlerConfiguration
+                if (securityToken.Response.Status.StatusCode.Value == StatusCodes.SUCCESS)
                 {
-                    CertificateValidator = X509CertificateValidator.None,
-                    IssuerNameRegistry   = new DemoClientIssuerNameRegistry(),
-                    DetectReplayedTokens = false
-                };
-                configuration.AudienceRestriction.AudienceMode = AudienceUriMode.Never;
+                    // token will be decrypted (if necessary)
+                    saml2.TryDecryptingEncryptedAssertions(securityToken, x509Configuration);
 
-                var tokenHandler = new Client.Saml2SecurityTokenHandler()
-                {
-                    Configuration = configuration
-                };
-                try
-                {
-                    var identity = tokenHandler.ValidateToken(securityToken).FirstOrDefault();
-
-                    // WK nie zwraca loginu, zwraca tylko imię/nazwisko/pesel/data urodzenia
-                    if (identity.FindFirst(ClaimTypes.Name) == null)
+                    // the token will be validated
+                    var configuration = new SecurityTokenHandlerConfiguration
                     {
-                        identity.AddClaim(new Claim(ClaimTypes.Name, identity.FindFirst(ClaimTypes.NameIdentifier).Value));
+                        CertificateValidator = X509CertificateValidator.None,
+                        IssuerNameRegistry = new DemoClientIssuerNameRegistry(),
+                        DetectReplayedTokens = false
+                    };
+                    configuration.AudienceRestriction.AudienceMode = AudienceUriMode.Never;
+
+                    var tokenHandler = new Client.Saml2SecurityTokenHandler()
+                    {
+                        Configuration = configuration
+                    };
+                    try
+                    {
+                        var identity = tokenHandler.ValidateToken(securityToken).FirstOrDefault();
+
+                        // WK nie zwraca loginu, zwraca tylko imię/nazwisko/pesel/data urodzenia
+                        if (identity.FindFirst(ClaimTypes.Name) == null)
+                        {
+                            identity.AddClaim(new Claim(ClaimTypes.Name, identity.FindFirst(ClaimTypes.NameIdentifier).Value));
+                        }
+
+                        // this is the SessionIndex, store it if necessary
+                        string sessionIndex = securityToken.Assertion.AuthnStatement.SessionIndex;
+                        identity.AddClaim(new Claim(Saml2ClaimTypes.SessionIndex, sessionIndex));
+
+                        // the token is validated succesfully
+                        var principal = new ClaimsPrincipal(identity);
+                        if (principal.Identity.IsAuthenticated)
+                        {
+                            SessionAuthenticationModule sam = FederatedAuthentication.SessionAuthenticationModule;
+                            var token =
+                                sam.CreateSessionSecurityToken(principal, string.Empty,
+                                     DateTime.Now.ToUniversalTime(), DateTime.Now.AddMinutes(60).ToUniversalTime(), false);
+
+                            sam.WriteSessionTokenToCookie(token);
+
+                            var redirectUrl = FormsAuthentication.GetRedirectUrl(principal.Identity.Name, false);
+
+                            return Redirect(redirectUrl);
+                        }
+                        else
+                        {
+                            throw new ArgumentNullException("principal", "Unauthenticated principal returned from token validation");
+                        }
                     }
-
-                    // this is the SessionIndex, store it if necessary
-                    string sessionIndex = securityToken.Assertion.AuthnStatement.SessionIndex;
-                    identity.AddClaim(new Claim(Saml2ClaimTypes.SessionIndex, sessionIndex));
-
-                    // the token is validated succesfully
-                    var principal = new ClaimsPrincipal(identity);
-                    if (principal.Identity.IsAuthenticated)
+                    catch (Exception ex)
                     {
-                        SessionAuthenticationModule sam = FederatedAuthentication.SessionAuthenticationModule;
-                        var token =
-                            sam.CreateSessionSecurityToken(principal, string.Empty,
-                                 DateTime.Now.ToUniversalTime(), DateTime.Now.AddMinutes(60).ToUniversalTime(), false);
-
-                        sam.WriteSessionTokenToCookie(token);
-
-                        var redirectUrl = FormsAuthentication.GetRedirectUrl(principal.Identity.Name, false);
-
-                        return Redirect(redirectUrl);
-                    }
-                    else
-                    {
-                        throw new ArgumentNullException("principal", "Unauthenticated principal returned from token validation");
+                        return Content("Problem z uwierzytelnieniem " + ex.Message);
                     }
                 }
-                catch ( Exception ex )
+                else
                 {
-                    return Content("Problem z uwierzytelnieniem " + ex.Message);
+                    return Content("Uwierzytelnienie zablokowane przez serwer. Status: " + securityToken.Response.Status.StatusCode.Value);
                 }
             }
         }
