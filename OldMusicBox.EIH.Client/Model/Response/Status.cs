@@ -13,6 +13,9 @@ namespace OldMusicBox.EIH.Client.Model
         [XmlElement("StatusCode", Namespace = Namespaces.PROTOCOL)]
         public StatusCode StatusCode { get; set; }
 
+        [XmlElement("StatusMessage", Namespace = Namespaces.PROTOCOL)]
+        public string StatusMessage { get; set; }
+
         public static Status Success
         {
             get
@@ -29,6 +32,15 @@ namespace OldMusicBox.EIH.Client.Model
     }
 
     public class StatusCode
+    {
+        [XmlAttribute("Value")]
+        public string Value { get; set; }
+
+        [XmlElement("StatusCode", Namespace = Namespaces.PROTOCOL)]
+        public InnerStatusCode InnerStatusCode { get; set; }
+    }
+
+    public class InnerStatusCode
     {
         [XmlAttribute("Value")]
         public string Value { get; set; }
