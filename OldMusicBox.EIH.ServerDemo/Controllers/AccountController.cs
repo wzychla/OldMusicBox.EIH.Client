@@ -17,8 +17,8 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
             var model       = new AccountLogonModel();
             
             model.Username    = "username";
-            model.GivenName   = "Kowalski";
-            model.Surname     = "Jan";
+            model.GivenName   = "Jan";
+            model.Surname     = "Kowalski";
             model.PESEL       = "11111111111";
             model.DateOfBirth = DateTime.Now;
 

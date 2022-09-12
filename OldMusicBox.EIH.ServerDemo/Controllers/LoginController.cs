@@ -33,7 +33,8 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
 
                 if (authReq != null)
                 {
-                    return HandleAuthenticationRequest(authReq);
+                    string relayState = RetrieveRelayState(this.Request);
+                    return HandleAuthenticationRequest(authReq, relayState);
                 }
                 else
                 {
@@ -46,7 +47,7 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
             }
         }
 
-        private ActionResult HandleAuthenticationRequest( AuthnRequest req )
+        private ActionResult HandleAuthenticationRequest( AuthnRequest req, string relayState )
         {
             if ( this.User.Identity != null && this.User.Identity.IsAuthenticated )
             {
@@ -66,9 +67,20 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
                     throw new ApplicationException("Invalid signature");
                 }
 
-                // authenticated user, return the SAML Artifact 
-                var url = $"{req.AssertionConsumerServiceURL}?SAMLArt={sessionIndex}";
-                return Redirect(url);
+                // authenticated user
+                
+                // POST response is
+                var samlArtResponseFactory = new SamlArtResponseFactory();
+
+                samlArtResponseFactory.Destination = req.AssertionConsumerServiceURL;
+                samlArtResponseFactory.RelayState  = relayState;
+                samlArtResponseFactory.SAMLArt     = sessionIndex;
+
+                return Content( samlArtResponseFactory.CreatePostBindingContent() );
+
+                // GET response would be
+                //var url = $"{req.AssertionConsumerServiceURL}?SAMLArt={sessionIndex}";
+                //return Redirect(url);
             }
             else
             {
@@ -76,11 +88,27 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
                 // the reason one can't just put [Authorize] over the SSO endpoint is that
                 // [Authorize] causes the response being redirected to the login page using 302 redirect
                 // but this doesn't preserve the AuthnRequest that is possibly POSTed here
-                this.Session.Add(Elements.AUTHNREQUEST, req);
+                this.Session.Add( Elements.AUTHNREQUEST, req );
+                this.Session.Add( Elements.RELAYSTATE, relayState );
 
                 string loginUrl = $"{FormsAuthentication.LoginUrl}?ReturnUrl={Request.Path}";
                 return Redirect(loginUrl);
             }
+        }
+
+        private string RetrieveRelayState( HttpRequestBase request )
+        {
+            var relayState = request.QueryString[Elements.RELAYSTATE];
+            if ( string.IsNullOrEmpty( relayState ) )
+            {
+                relayState = request.Form[Elements.RELAYSTATE];
+            }
+            if ( string.IsNullOrEmpty( relayState ) )
+            {
+                relayState = this.Session[Elements.RELAYSTATE] as string;
+            }
+
+            return relayState;
         }
     }
 }

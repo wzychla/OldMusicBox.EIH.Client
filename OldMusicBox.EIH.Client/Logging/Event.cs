@@ -15,6 +15,8 @@ namespace OldMusicBox.EIH.Client.Logging
         RawAuthnRequest,
         // complete post binding page
         PostBindingPage,
+        // the artifact response
+        ArtifactPostResponse,
         // whatever comes as SAMLResponse
         RawResponse,
         // a signed message

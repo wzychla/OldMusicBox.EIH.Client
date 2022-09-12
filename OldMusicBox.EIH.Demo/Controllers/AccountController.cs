@@ -64,6 +64,8 @@ namespace OldMusicBox.EIH.Demo.Controllers
 
                 authnRequestFactory.AuthnRequest.ForceAuthn = true;
 
+                authnRequestFactory.RelayState = "foobar"; // RelayState is supported!
+
                 // specyficzne dla WK
                 authnRequestFactory.AuthnRequest.Extensions = new Extensions()
                 {
@@ -131,12 +133,17 @@ namespace OldMusicBox.EIH.Demo.Controllers
 
                         securityToken = saml2.GetArtifactSecurityToken(this.Request, artifactConfig);
                         break;
-                    case Binding.POST:
-                        securityToken = saml2.GetPostSecurityToken(this.Request);
-                        break;
+                    // WK uses ARTIFACT binding
+                    //case Binding.POST:
+                    //    securityToken = saml2.GetPostSecurityToken(this.Request);
+                    //    break;
                     default:
                         throw new NotSupportedException(string.Format("The {0} response binding is not yet supported", responseBinding));
                 }
+
+                // not used in the demo but 
+                // can be used for the return url
+                var relayState = RetrieveRelayState(this.Request);
 
                 // fail if there is no token
                 if (securityToken == null || 
@@ -210,6 +217,17 @@ namespace OldMusicBox.EIH.Demo.Controllers
                     return Content("Uwierzytelnienie zablokowane przez serwer. Status: " + securityToken.Response.Status.StatusCode.Value);
                 }
             }
+        }
+
+        private string RetrieveRelayState( HttpRequestBase request )
+        {
+            var relayState = request.QueryString[Elements.RELAYSTATE];
+            if ( string.IsNullOrEmpty( relayState ) )
+            {
+                relayState = request.Form[Elements.RELAYSTATE];
+            }
+
+            return relayState;
         }
     }
 }

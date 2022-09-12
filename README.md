@@ -6,7 +6,7 @@ The client will support the Węzeł Krajowy SSO flow (SAML2 with ECDSA and asser
 The implementation follows the 
 [official specification](https://mc.bip.gov.pl/interoperacyjnosc-mc/wezel-krajowy-dokumentacja-dotyczaca-integracji-z-wezlem-krajowym.html).
 
-## Current Version: 0.70
+## Current Version: 0.71
 
 Please refer to the change list and the road map below.
 
@@ -88,6 +88,14 @@ To connect to the WK test site (Symulator) you will need certificates from the s
 To connect to the actual WK site you get production certificates from a certificate provider.
 
 ## Version History:
+
+* 0.71 (2022-09-12)
+	* no changes in the client code and thus no new NuGet package. 
+	A fix in the demo server changes the way the SAMLArt is returned to the client. In previous version of the demo server, the SAMLArt was returned
+	by just redirecting back to the client (GET) and passing the SAMLArt in the query string. Currently, the demo server POSTs back the SAMLArt to the client (and this is how the
+	actual WK site works).
+	Consult `ServerDemo::LoginController::HandleAuthenticationRequest`, lines 73-83 for more details. This detail could be important to a client as according to the newly
+	introduced SameSite cookie policy in web browsers, cross site GET redirects carry cookies but POST redirects do not. 
 
 * 0.70 (2021-07-13)
     * fixed something that looks like a problem at the server. Looks like the production server (`login.gov.pl`) does the `aes256-gcm` differently than the two, the integration

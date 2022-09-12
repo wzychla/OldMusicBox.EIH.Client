@@ -14,6 +14,7 @@ namespace OldMusicBox.EIH.Client.Resources
     {
         public enum EmbeddedResource
         {
+            ArtifactPostResponse,
             RequestPostBinding,
             ResponsePostBinding
         }
@@ -21,6 +22,9 @@ namespace OldMusicBox.EIH.Client.Resources
         private Dictionary<EmbeddedResource, string> resourceNames =
             new Dictionary<EmbeddedResource, string>()
             {
+                {
+                    EmbeddedResource.ArtifactPostResponse, "ArtifactPostResponse.html"
+                },
                 {
                     EmbeddedResource.RequestPostBinding, "RequestPostBinding.html"
                 },

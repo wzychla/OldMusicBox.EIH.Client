@@ -31,7 +31,7 @@
         </div>
         <div>
             <label for="DateOfBirth">Date of birth:</label>
-            @Html.TextBoxFor(m => m.DateOfBirth, new { type="date" })
+            @Html.EditorFor(m => m.DateOfBirth, new { type="date" })
             @Html.ValidationMessageFor(m => m.DateOfBirth)
         </div>
         <div>

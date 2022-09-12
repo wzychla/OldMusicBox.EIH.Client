@@ -16,7 +16,7 @@ namespace OldMusicBox.EIH.ServerDemo.Controllers
     /// <summary>
     /// Auxiliary SAML2 endpoint
     /// ..../login-service/idpArtifactResolutionService - Artifact Resolve endpoint
-    /// ..../login-service/singleLogoutService          - SLO endpoint
+    /// ..../login-service/singleLogoutService          - Single LogOut endpoint
     /// </summary>
     public class LoginServicesController : Controller
     {

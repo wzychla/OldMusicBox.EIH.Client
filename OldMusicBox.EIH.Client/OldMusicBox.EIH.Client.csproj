@@ -93,6 +93,7 @@
     <Compile Include="Model\Response\EncryptedAssertionFactory.cs" />
     <Compile Include="Model\Response\Response.cs" />
     <Compile Include="Model\Response\ResponseFactory.cs" />
+    <Compile Include="Model\Response\SamlArtResponseFactory.cs" />
     <Compile Include="Model\Response\Signature.cs" />
     <Compile Include="Model\Response\Status.cs" />
     <Compile Include="Model\X509Configuration.cs" />
@@ -214,6 +215,9 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>SR.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ArtifactPostResponse.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
