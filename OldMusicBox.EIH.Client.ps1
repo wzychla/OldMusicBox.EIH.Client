@@ -22,7 +22,7 @@ $contents = @"
     <authors>wzychla</authors>
 	<dependencies>
 		<group targetFramework="net462">
-			<dependency id="BouncyCastle" version="1.8.6.1" />
+			<dependency id="BouncyCastle" version="1.8.9" />
 		</group>
 	</dependencies>
     <projectUrl>https://github.com/wzychla/OldMusicBox.EIH.Client</projectUrl>

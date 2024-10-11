@@ -6,7 +6,7 @@ The client will support the Węzeł Krajowy SSO flow (SAML2 with ECDSA and asser
 The implementation follows the 
 [official specification](https://mc.bip.gov.pl/interoperacyjnosc-mc/wezel-krajowy-dokumentacja-dotyczaca-integracji-z-wezlem-krajowym.html).
 
-## Current Version: 0.71
+## Current Version: 1.0
 
 Please refer to the change list and the road map below.
 
@@ -88,6 +88,10 @@ To connect to the WK test site (Symulator) you will need certificates from the s
 To connect to the actual WK site you get production certificates from a certificate provider.
 
 ## Version History:
+
+* 1.0 (2024-10-11)
+	* bumped version number to 1.0 since the code is production ready (for over 3 years) and has been succesfully used in multiple projects
+	* upgraded the Bouncy reference to 1.8.9 since the 1.8.6 used before doesn't correctly handle some ECDA certificates
 
 * 0.71 (2022-09-12)
 	* no changes in the client code and thus no new NuGet package. 
