@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -78,6 +79,22 @@ namespace OldMusicBox.EIH.Client.Model.Request
             set
             {
                 this.AuthnRequest.Destination = value;
+            }
+        }
+
+        /// <summary>
+        /// Specifies the human-readable name of the requester for use by the 
+        /// presenter's user agent or the identity provider.
+        /// </summary>
+        public string ProviderName
+        {
+            get
+            {
+                return this.AuthnRequest.ProviderName;
+            }
+            set
+            {
+                this.AuthnRequest.ProviderName = value;
             }
         }
 

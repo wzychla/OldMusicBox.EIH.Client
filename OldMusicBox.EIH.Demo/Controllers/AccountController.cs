@@ -32,6 +32,7 @@ namespace OldMusicBox.EIH.Demo.Controllers
             var assertionIssuer             = ConfigurationManager.AppSettings["AssertionIssuer"];
             var identityProvider            = ConfigurationManager.AppSettings["IdentityProvider"];
             var artifactResolve             = ConfigurationManager.AppSettings["ArtifactResolve"];
+            var providerName                = ConfigurationManager.AppSettings["ProviderName"];
 
             var requestBinding  = Binding.POST;
             var responseBinding = Binding.ARTIFACT;
@@ -55,6 +56,7 @@ namespace OldMusicBox.EIH.Demo.Controllers
 
                 authnRequestFactory.AssertionConsumerServiceURL = assertionConsumerServiceURL;
                 authnRequestFactory.AssertionIssuer             = assertionIssuer;
+                authnRequestFactory.ProviderName                = providerName;
                 authnRequestFactory.Destination                 = identityProvider;
 
                 authnRequestFactory.X509Configuration = x509Configuration;

@@ -6,7 +6,7 @@ The client will support the Węzeł Krajowy SSO flow (SAML2 with ECDSA and asser
 The implementation follows the 
 [official specification](https://mc.bip.gov.pl/interoperacyjnosc-mc/wezel-krajowy-dokumentacja-dotyczaca-integracji-z-wezlem-krajowym.html).
 
-## Current Version: 1.0
+## Current Version: 1.1.0
 
 Please refer to the change list and the road map below.
 
@@ -89,8 +89,14 @@ To connect to the actual WK site you get production certificates from a certific
 
 ## Version History:
 
+* 1.1 (2025-01-15)
+	* added support for `ProviderName` in `AuthnRequest`. Current version of the Węzeł Krajowy specification still marks this attribute as optional but, for some reason,
+	  the provisioning procedure has been changed. Client systems that are provisioned are suddenly expected to send a given value of this attribute in the integration environment.
+	  Missing value or an incorrect value raises an exception at the WK integration server. This breaking change of the server's requirements is not supported without this
+	  change!
+
 * 1.0 (2024-10-11)
-	* bumped version number to 1.0 since the code is production ready (for over 3 years) and has been succesfully used in multiple projects
+	* bumped version number to 1.0 since the code is production ready (for over 3 years) and has been succesfully used in multiple applications
 	* upgraded the Bouncy reference to 1.8.9 since the 1.8.6 used before doesn't correctly handle some ECDA certificates
 
 * 0.71 (2022-09-12)

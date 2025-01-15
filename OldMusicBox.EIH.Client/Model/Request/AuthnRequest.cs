@@ -26,6 +26,7 @@ namespace OldMusicBox.EIH.Client.Model
 
         [XmlAttribute("IssueInstant")]
         public DateTime IssueInstant { get; set; }
+
         [XmlAttribute("ForceAuthn")]
         public bool ForceAuthn { get; set; }
 
@@ -36,6 +37,14 @@ namespace OldMusicBox.EIH.Client.Model
 
         [XmlAttribute("AssertionConsumerServiceURL")]
         public string AssertionConsumerServiceURL { get; set; }
+
+        public bool ShouldSerializeProviderName()
+        {
+            return !string.IsNullOrEmpty( ProviderName );
+        }
+
+        [XmlAttribute("ProviderName")]
+        public string ProviderName { get; set; }
 
         [XmlAttribute("Destination")]
         public string Destination { get; set; }
