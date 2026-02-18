@@ -44,11 +44,17 @@ Węzeł Krajowy in .NET/C# is difficult because
 * the base class library doesn't contain the SAML2 client
 * the base class library doesn't support the ECDSA in **SignedXml**
 
-Because of this, [BouncyCastle](https://github.com/bcgit/bc-csharp) must be used and because of the **SignedXml** integration, a significant part of the **SignedXml** has to be rewritten to switch the crypto subsystem. Fortunately, someone actually did it and there's the [bc-xml-security](https://github.com/kmvi/bc-xml-security) package (which still misses the support of ECDSA but it's easily fixable).
+Because of this, [BouncyCastle](https://github.com/bcgit/bc-csharp) must be used and because of the **SignedXml** integration, 
+a significant part of the **SignedXml** has to be rewritten to switch the crypto subsystem. 
+Fortunately, someone actually did it and there's the [bc-xml-security](https://github.com/kmvi/bc-xml-security) package 
+(which still misses the support of ECDSA but it's easily fixable).
 
-The SAML2 is based on the [OldMusicBox.SAML2](https://github.com/wzychla/OldMusicBox.Saml2) and my ultimate goal is to have a single SAML2 stack where the cryptography is abstracted so that you can switch between the Base Class Library that does RSA and BouncyCastle if you also need ECDSA.
+The SAML2 is based on the [OldMusicBox.SAML2](https://github.com/wzychla/OldMusicBox.Saml2) and my ultimate goal is to have 
+a single SAML2 stack where the cryptography is abstracted so that you can switch between the Base Class Library 
+that does RSA and BouncyCastle if you also need ECDSA.
 
-Still, the most difficult part of the implementation is the encrypted assertion decryption. The COI (*Centralny Ośrodek Informatyki*) publishes a source code of a Java decryptor. The core part of their decryptor uses few different Java packages. The tricky part here
+Still, the most difficult part of the implementation is the encrypted assertion decryption. 
+The COI (*Centralny Ośrodek Informatyki*) publishes a source code of a Java decryptor. The core part of their decryptor uses few different Java packages. The tricky part here
 was then to rewrite the Java code to .NET - it was fairly
 straightforward to rewrite the BouncyCastle code, however
 it was quite a challenge rewrite the **org.apache.xml.security.encryption.XMLCipher** code. The [Bouncy-Castle-AES-GCM-Encryption](https://github.com/lukemerrett/Bouncy-Castle-AES-GCM-Encryption) is a great help here.

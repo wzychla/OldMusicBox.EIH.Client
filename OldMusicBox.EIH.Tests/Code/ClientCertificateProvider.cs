@@ -23,7 +23,7 @@ namespace OldMusicBox.EIH.Tests
                 var path = Directory.GetCurrentDirectory() + $@"/Resources/{certName}.p12";
                 var pwd  = certPwd;
 
-                _clientStore.Add(certName, new Pkcs12Store());
+                _clientStore.Add(certName, new Pkcs12StoreBuilder().Build());
                 using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     _clientStore[certName].Load(fs, pwd.ToCharArray());

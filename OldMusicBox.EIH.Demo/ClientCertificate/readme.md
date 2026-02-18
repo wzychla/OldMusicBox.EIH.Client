@@ -1,1 +1,2 @@
-Both .p12 files are used only for the local demo. Both are unusable and not supported by the actual WK Symulator.
+Both .p12 files contain certificates that are public and are used only for the local demo. 
+Do not use in in production (login.gov.pl), the integration environment (int.login.gov.pl) or the simulator (symulator.login.gov.pl).

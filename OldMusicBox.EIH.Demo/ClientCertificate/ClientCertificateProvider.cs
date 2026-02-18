@@ -24,7 +24,7 @@ namespace OldMusicBox.EIH.Demo
             if (_clientSigStore == null)
             {
                 var path = HostingEnvironment.MapPath("~/ClientCertificate/signature.p12");
-                _clientSigStore = new Pkcs12Store();
+                _clientSigStore = new Pkcs12StoreBuilder().Build(); 
                 using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     _clientSigStore.Load(fs, "123456".ToCharArray() );
@@ -53,7 +53,7 @@ namespace OldMusicBox.EIH.Demo
             if (_clientEncStore == null)
             {
                 var path = HostingEnvironment.MapPath("~/ClientCertificate/encryption.p12");
-                _clientEncStore = new Pkcs12Store();
+                _clientEncStore = new Pkcs12StoreBuilder().Build();
                 using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     _clientEncStore.Load(fs, "123456".ToCharArray());

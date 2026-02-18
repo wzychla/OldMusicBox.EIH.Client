@@ -84,5 +84,9 @@ namespace Org.BouncyCastle.Crypto.Xml
             digest.Reset();
         }
 
+        public int GetMaxSignatureSize()
+        {
+            return int.MaxValue;
+        }
     }
 }

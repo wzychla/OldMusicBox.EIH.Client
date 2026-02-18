@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29418.71
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OldMusicBox.EIH.Client", "OldMusicBox.EIH.Client\OldMusicBox.EIH.Client.csproj", "{49E183EF-E8C4-4665-BD87-C35B7AB79624}"
 EndProject
@@ -10,6 +10,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OldMusicBox.EIH.Tests", "OldMusicBox.EIH.Tests\OldMusicBox.EIH.Tests.csproj", "{B51A4834-AB87-4A5B-8CC4-41B72F12C172}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OldMusicBox.EIH.ServerDemo", "OldMusicBox.EIH.ServerDemo\OldMusicBox.EIH.ServerDemo.csproj", "{E501D3D1-DCB3-4569-BF7B-5394698A2829}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OldMusicBox.EIH.Client.Core", "OldMusicBox.EIH.Client.Core\OldMusicBox.EIH.Client.Core.csproj", "{F2B0A07E-CF2C-4EAB-A30C-8C7FB3407A14}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetFramework", "NetFramework", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetCore", "NetCore", "{F591B305-8566-4C62-8F2F-7DC5C75BEAC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,9 +39,20 @@ Global
 		{E501D3D1-DCB3-4569-BF7B-5394698A2829}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E501D3D1-DCB3-4569-BF7B-5394698A2829}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E501D3D1-DCB3-4569-BF7B-5394698A2829}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2B0A07E-CF2C-4EAB-A30C-8C7FB3407A14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2B0A07E-CF2C-4EAB-A30C-8C7FB3407A14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2B0A07E-CF2C-4EAB-A30C-8C7FB3407A14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2B0A07E-CF2C-4EAB-A30C-8C7FB3407A14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{49E183EF-E8C4-4665-BD87-C35B7AB79624} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{DEA171FB-9D40-4CCD-BD38-0EC078CC9004} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B51A4834-AB87-4A5B-8CC4-41B72F12C172} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{E501D3D1-DCB3-4569-BF7B-5394698A2829} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{F2B0A07E-CF2C-4EAB-A30C-8C7FB3407A14} = {F591B305-8566-4C62-8F2F-7DC5C75BEAC6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B101E02-08FD-4C90-9C06-7E6D0A6A37E0}
